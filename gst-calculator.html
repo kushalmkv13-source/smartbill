@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Calculator | Smart Billing System</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary-neon: #3b82f6;
+            --secondary-neon: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-radius: 18px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Styling */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.15);
+        }
+
+    
+
+       .main-content{
+    margin-left:0;
+    padding:30px;
+}
+
+        .nav-link {
+            color: var(--text-muted);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .nav-link i { margin-right: 12px; font-size: 1.1rem; }
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary-neon);
+            color: white;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Form Controls */
+        .form-control, .form-select {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: var(--primary-neon);
+            color: white;
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+        }
+
+        /* Summary Cards */
+        .summary-card {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid transparent;
+        }
+
+        .summary-card.blue { border-color: #3b82f6; }
+        .summary-card.purple { border-color: #8b5cf6; }
+        .summary-card.green { border-color: #10b981; }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        /* Mode Toggle */
+        .btn-group-mode .btn {
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            background: transparent;
+        }
+
+        .btn-group-mode .btn.active {
+            background: var(--primary-neon);
+            color: white;
+        }
+
+        /* History Table */
+        .table-custom {
+            color: var(--text-main);
+        }
+        .table-custom thead { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+        .table-custom tr { border-bottom: 1px solid var(--glass-border); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        @media (max-width: 992px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-up { animation: fadeIn 0.5s ease forwards; }
+        /* ==========================
+   Back Button
+========================== */
+
+.back-btn{
+    background:rgba(59,130,246,.12);
+    border:1px solid #3b82f6;
+    color:#3b82f6;
+    border-radius:12px;
+    padding:10px 18px;
+    font-weight:600;
+    transition:all .3s ease;
+}
+
+.back-btn i{
+    margin-right:8px;
+}
+
+.back-btn:hover{
+    background:#3b82f6;
+    color:#fff;
+    transform:translateX(-3px);
+    box-shadow:0 0 20px rgba(59,130,246,.4);
+}
+        /* ===== Fix Label Visibility ===== */
+
+.form-label{
+    color:#ffffff !important;
+    opacity:1 !important;
+    font-weight:700 !important;
+    font-size:14px !important;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+.summary-card span{
+    color:#ffffff !important;
+    opacity:1 !important;
+    font-weight:700 !important;
+}
+
+.form-check-label{
+    color:#ffffff !important;
+}
+    </style>
+</head>
+<body>
+
+  
+    <!-- Main Content -->
+   <main class="container-fluid px-4 py-4">
+        <!-- Header -->
+       <header class="d-flex justify-content-between align-items-center mb-4 animate-up">
+
+    <div class="d-flex align-items-center">
+
+        <!-- Back Button -->
+        <button class="btn back-btn me-3"
+                onclick="window.location.href='dashboard.html'">
+
+            <i class="bi bi-arrow-left"></i>
+            Back to dashboard
+
+        </button>
+
+        <div>
+            <h2 class="fw-bold mb-1">GST Calculator</h2>
+            <p class="text-muted small mb-0">
+                Calculate GST instantly for any product or service.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="text-end d-none d-md-block">
+        <h6 id="current-date" class="mb-0 fw-semibold"></h6>
+        <span id="current-time" class="text-primary small"></span>
+    </div>
+
+</header>
+
+        <div class="row g-4">
+            <!-- Left Column: Inputs -->
+            <div class="col-xl-4 col-lg-5 animate-up">
+                <div class="glass-card p-4 h-100">
+                    <label class="form-label text-white fw-bold mb-2">
+CALCULATION MODE
+</label>
+                    <div class="btn-group w-100 mb-4 btn-group-mode" role="group">
+                        <input type="radio" class="btn-check" name="mode" id="modeAdd" value="add" checked>
+                        <label class="btn py-2" for="modeAdd">Add GST</label>
+                        
+                        <input type="radio" class="btn-check" name="mode" id="modeRemove" value="remove">
+                        <label class="btn py-2" for="modeRemove">Remove GST</label>
+                    </div>
+
+                    <div class="mb-3">
+<label class="form-label text-white fw-bold mb-2" id="labelAmount">
+ORIGINAL AMOUNT (₹)
+</label>
+                        <input type="number" id="inputAmount" class="form-control form-control-lg" placeholder="0.00">
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label text-white fw-bold mb-2">
+GST RATE (%)
+</label>
+                        <div class="input-group">
+                            <select id="gstRateSelect" class="form-select">
+                                <option value="0">0%</option>
+                                <option value="3">3%</option>
+                                <option value="5">5%</option>
+                                <option value="12">12%</option>
+                                <option value="18" selected>18%</option>
+                                <option value="28">28%</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <input type="number" id="gstRateCustom" class="form-control d-none" placeholder="Enter %">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+<label class="form-label text-white fw-bold mb-2 d-block">
+GST TYPE
+</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="gstType" id="intraState" value="intra" checked>
+                            <label class="form-check-label small" for="intraState">CGST + SGST</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="gstType" id="interState" value="inter">
+                            <label class="form-check-label small" for="interState">IGST</label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button id="btnReset" class="btn btn-outline-secondary py-2"><i class="bi bi-arrow-counterclockwise me-2"></i>Reset</button>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button onclick="window.print()" class="btn btn-dark border w-100"><i class="bi bi-printer me-2"></i>Print</button>
+                            </div>
+                            <div class="col-6">
+                                <button id="btnCopy" class="btn btn-dark border w-100"><i class="bi bi-clipboard me-2"></i>Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Visuals & Results -->
+            <div class="col-xl-8 col-lg-7">
+                <!-- Summary Cards Row -->
+                <div class="row g-3 mb-4 animate-up" style="animation-delay: 0.1s;">
+                    <div class="col-md-4">
+                        <div class="glass-card summary-card blue">
+                            <span class="text-muted small fw-bold">BASE AMOUNT</span>
+                            <div class="stat-value text-primary" id="resBase">₹0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="glass-card summary-card purple">
+                            <span class="text-muted small fw-bold">TOTAL GST</span>
+                            <div class="stat-value text-info" id="resGst">₹0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="glass-card summary-card green">
+                            <span class="text-muted small fw-bold">GRAND TOTAL</span>
+                            <div class="stat-value text-success" id="resTotal">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Split Details -->
+                <div class="row g-4 mb-4 animate-up" style="animation-delay: 0.2s;">
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 h-100">
+                            <h6 class="fw-bold mb-4">GST Breakup</h6>
+                            <div id="splitContainer">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted" id="splitLabel1">CGST (9%)</span>
+                                    <span class="fw-bold" id="splitVal1">₹0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted" id="splitLabel2">SGST (9%)</span>
+                                    <span class="fw-bold" id="splitVal2">₹0.00</span>
+                                </div>
+                                <hr class="my-3 opacity-10">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Effective Rate</span>
+                                    <span class="badge bg-primary rounded-pill" id="effRate">18%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <canvas id="gstChart" style="max-height: 180px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="col-12 animate-up" style="animation-delay: 0.3s;">
+                <div class="glass-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">Recent Calculations</h5>
+                        <button id="btnClearHistory" class="btn btn-sm btn-outline-danger border-0">Clear History</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Mode</th>
+                                    <th>Amount</th>
+                                    <th>GST %</th>
+                                    <th>GST Amount</th>
+                                    <th>Total</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- JS Injection -->
+                            </tbody>
+                        </table>
+                        <div id="emptyState" class="text-center py-5">
+                            <i class="bi bi-calculator text-muted display-4"></i>
+                            <p class="text-muted mt-2">Enter an amount to see calculation history</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formula Help Section -->
+            <div class="col-12 animate-up mb-5" style="animation-delay: 0.4s;">
+                <div class="accordion glass-card" id="formulaAccordion">
+                    <div class="accordion-item bg-transparent border-0">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#formulaInfo">
+                                <i class="bi bi-info-circle me-2"></i> GST Calculation Formulas
+                            </button>
+                        </h2>
+                        <div id="formulaInfo" class="accordion-collapse collapse" data-bs-parent="#formulaAccordion">
+                            <div class="accordion-body text-muted small">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="fw-bold text-white mb-1">Add GST:</p>
+                                        <code>GST Amount = Amount × GST% / 100</code><br>
+                                        <code>Grand Total = Amount + GST Amount</code>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="fw-bold text-white mb-1">Remove GST (Inclusive):</p>
+                                        <code>Base Amount = Total Amount / (1 + GST% / 100)</code><br>
+                                        <code>GST Amount = Total Amount - Base Amount</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        /**
+         * GST Calculator - Core Logic
+         */
+        const elements = {
+            amount: document.getElementById('inputAmount'),
+            gstRateSelect: document.getElementById('gstRateSelect'),
+            gstRateCustom: document.getElementById('gstRateCustom'),
+            modeRadios: document.getElementsByName('mode'),
+            gstTypeRadios: document.getElementsByName('gstType'),
+            resBase: document.getElementById('resBase'),
+            resGst: document.getElementById('resGst'),
+            resTotal: document.getElementById('resTotal'),
+            splitLabel1: document.getElementById('splitLabel1'),
+            splitLabel2: document.getElementById('splitLabel2'),
+            splitVal1: document.getElementById('splitVal1'),
+            splitVal2: document.getElementById('splitVal2'),
+            effRate: document.getElementById('effRate'),
+            historyTable: document.querySelector('#historyTable tbody'),
+            emptyState: document.getElementById('emptyState')
+        };
+
+        let myChart;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            initChart();
+            loadHistory();
+            attachListeners();
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('current-date').innerText = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('en-IN');
+        }
+
+        function attachListeners() {
+            [elements.amount, elements.gstRateSelect, elements.gstRateCustom].forEach(el => {
+                el.addEventListener('input', calculate);
+            });
+
+            elements.modeRadios.forEach(r => r.addEventListener('change', () => {
+                document.getElementById('labelAmount').innerText = r.value === 'add' ? 'ORIGINAL AMOUNT (₹)' : 'TOTAL AMOUNT (₹)';
+                calculate();
+            }));
+
+            elements.gstTypeRadios.forEach(r => r.addEventListener('change', calculate));
+
+            elements.gstRateSelect.addEventListener('change', (e) => {
+                if (e.target.value === 'custom') {
+                    elements.gstRateCustom.classList.remove('d-none');
+                } else {
+                    elements.gstRateCustom.classList.add('d-none');
+                }
+                calculate();
+            });
+
+            document.getElementById('btnReset').addEventListener('click', resetCalculator);
+            document.getElementById('btnClearHistory').addEventListener('click', clearHistory);
+            document.getElementById('btnCopy').addEventListener('click', copyResults);
+        }
+
+        function calculate() {
+            const amount = parseFloat(elements.amount.value) || 0;
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            const gstType = document.querySelector('input[name="gstType"]:checked').value;
+            
+            let rate = elements.gstRateSelect.value === 'custom' 
+                ? parseFloat(elements.gstRateCustom.value) || 0 
+                : parseFloat(elements.gstRateSelect.value);
+
+            let baseAmount, gstAmount, grandTotal;
+
+            if (mode === 'add') {
+                baseAmount = amount;
+                gstAmount = baseAmount * (rate / 100);
+                grandTotal = baseAmount + gstAmount;
+            } else {
+                grandTotal = amount;
+                baseAmount = grandTotal / (1 + (rate / 100));
+                gstAmount = grandTotal - baseAmount;
+            }
+
+            updateUI(baseAmount, gstAmount, grandTotal, rate, gstType);
+            updateChart(baseAmount, gstAmount);
+            
+            // Only save to history if amount is significant and user stops typing for 1s (Debounce)
+            clearTimeout(window.saveTimeout);
+            if (amount > 0) {
+                window.saveTimeout = setTimeout(() => saveToHistory(mode, baseAmount, rate, gstAmount, grandTotal), 1500);
+            }
+        }
+
+        function updateUI(base, gst, total, rate, type) {
+            elements.resBase.innerText = formatCurrency(base);
+            elements.resGst.innerText = formatCurrency(gst);
+            elements.resTotal.innerText = formatCurrency(total);
+            elements.effRate.innerText = rate + '%';
+
+            if (type === 'intra') {
+                elements.splitLabel1.innerText = `CGST (${rate/2}%)`;
+                elements.splitLabel2.innerText = `SGST (${rate/2}%)`;
+                elements.splitVal1.innerText = formatCurrency(gst/2);
+                elements.splitVal2.innerText = formatCurrency(gst/2);
+                elements.splitLabel2.parentElement.style.display = 'flex';
+            } else {
+                elements.splitLabel1.innerText = `IGST (${rate}%)`;
+                elements.splitVal1.innerText = formatCurrency(gst);
+                elements.splitLabel2.parentElement.style.display = 'none';
+            }
+        }
+
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR'
+            }).format(num);
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('gstChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Base Amount', 'GST'],
+                    datasets: [{
+                        data: [100, 0],
+                        backgroundColor: ['#3b82f6', '#8b5cf6'],
+                        borderColor: 'transparent',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function updateChart(base, gst) {
+            myChart.data.datasets[0].data = [base, gst];
+            myChart.update();
+        }
+
+        function saveToHistory(mode, amount, rate, gst, total) {
+            let history = JSON.parse(localStorage.getItem('gst_history')) || [];
+            const entry = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString(),
+                mode: mode.toUpperCase(),
+                amount: formatCurrency(amount),
+                rate: rate + '%',
+                gst: formatCurrency(gst),
+                total: formatCurrency(total)
+            };
+            history.unshift(entry);
+            history = history.slice(0, 10); // Keep last 10
+            localStorage.setItem('gst_history', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('gst_history')) || [];
+            elements.historyTable.innerHTML = '';
+            
+            if (history.length === 0) {
+                elements.emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            elements.emptyState.classList.add('d-none');
+            history.forEach(item => {
+                const row = `
+                    <tr>
+                        <td class="small">${item.timestamp}</td>
+                        <td><span class="badge ${item.mode === 'ADD' ? 'bg-primary' : 'bg-info'}">${item.mode}</span></td>
+                        <td>${item.amount}</td>
+                        <td>${item.rate}</td>
+                        <td class="text-info">${item.gst}</td>
+                        <td class="fw-bold text-success">${item.total}</td>
+                        <td><button onclick="deleteHistory(${item.id})" class="btn btn-sm text-danger"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                `;
+                elements.historyTable.innerHTML += row;
+            });
+        }
+
+        function deleteHistory(id) {
+            let history = JSON.parse(localStorage.getItem('gst_history')) || [];
+            history = history.filter(item => item.id !== id);
+            localStorage.setItem('gst_history', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function clearHistory() {
+            if(confirm("Clear all calculation history?")) {
+                localStorage.removeItem('gst_history');
+                loadHistory();
+            }
+        }
+
+        function resetCalculator() {
+            elements.amount.value = '';
+            elements.gstRateSelect.value = '18';
+            elements.gstRateCustom.classList.add('d-none');
+            calculate();
+        }
+
+        function copyResults() {
+            const text = `GST Calculation:\nBase: ${elements.resBase.innerText}\nGST: ${elements.resGst.innerText}\nTotal: ${elements.resTotal.innerText}`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            });
+        }
+    </script>
+</body>
+</html>

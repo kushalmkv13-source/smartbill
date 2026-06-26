@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Hub – GST Billing & Invoice Generator</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-neon: #00d4ff;
+  --blue-deep: #0a1628;
+  --blue-mid: #0d2447;
+  --blue-accent: #1a6bff;
+  --blue-glow: rgba(0,212,255,0.15);
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(0,212,255,0.2);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255,255,255,0.65);
+  --text-muted: rgba(255,255,255,0.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;overflow-x:hidden;font-family:'Inter',sans-serif;background:#040e1f;color:var(--text-primary);}
+body.no-scroll{overflow:hidden;}
+
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+.float-world{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden;}
+.float-el{position:absolute;animation:floatUp linear infinite;opacity:0;will-change:transform,opacity;}
+@keyframes floatUp{
+  0%{transform:translateY(110vh) rotate(0deg);opacity:0;}
+  5%{opacity:var(--op,0.18);}
+  90%{opacity:var(--op,0.18);}
+  100%{transform:translateY(-20vh) rotate(var(--rot,360deg));opacity:0;}
+}
+.float-currency{font-size:var(--fs,1.4rem);color:var(--blue-neon);text-shadow:0 0 12px var(--blue-neon);font-weight:700;}
+.float-icon{font-size:var(--fs,1.2rem);color:var(--blue-neon);opacity:0.15;}
+.float-doc{width:var(--w,44px);height:var(--h,56px);background:rgba(255,255,255,0.03);border:1px solid rgba(0,212,255,0.15);border-radius:4px;backdrop-filter:blur(4px);box-shadow:0 0 10px rgba(0,212,255,0.08);}
+.float-qr{width:36px;height:36px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.3);border-radius:6px;box-shadow:0 0 14px rgba(0,212,255,0.25);display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px;}
+.float-qr span{background:var(--blue-neon);border-radius:1px;}
+.float-card{padding:8px 12px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:8px;backdrop-filter:blur(6px);font-size:0.6rem;color:var(--blue-neon);white-space:nowrap;}
+
+#scene-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, #081428 0%, #020a14 100%);transition:opacity 0.8s ease;}
+
+#invoice-wrap{position:relative;width:520px;max-width:96vw;transform:scale(0) translateY(20px);margin-top:-80px;animation:invoiceReveal 1s cubic-bezier(0.34,1.56,0.64,1) 0.8s forwards;filter:drop-shadow(0 40px 80px rgba(0,0,0,0.8)) drop-shadow(0 0 60px rgba(0,212,255,0.12));}
+@keyframes invoiceReveal{to{transform:scale(1) translateY(0);opacity:1;}}
+#invoice{background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 0 0 #e8e8e8 inset,0 60px 120px -20px rgba(0,0,0,0.5);position:relative;overflow:hidden;font-family:'Inter',sans-serif;color:#1a1a2e;}
+#invoice::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#1a6bff,#00d4ff,#1a6bff);}
+#invoice::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;}
+
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.inv-logo{display:flex;align-items:center;gap:10px;}
+.inv-logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#1a6bff,#00d4ff);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;}
+.inv-logo-text{font-size:1.1rem;font-weight:800;color:#1a1a2e;letter-spacing:-0.5px;}
+.inv-logo-sub{font-size:0.6rem;color:#888;font-weight:400;}
+.inv-meta{text-align:right;}
+.inv-title{font-size:1.6rem;font-weight:900;color:#1a1a2e;letter-spacing:-1px;}
+.inv-num{font-size:0.7rem;color:#666;margin-top:2px;}
+.inv-badge{display:inline-block;padding:2px 8px;background:#e8f5e9;color:#2e7d32;border-radius:20px;font-size:0.6rem;font-weight:600;margin-top:4px;}
+
+.write-anim{overflow:hidden;white-space:nowrap;}
+.write-anim span{display:inline-block;border-right:2px solid #1a6bff;animation:none;}
+.typing{animation:typing 0.8s steps(var(--chars,10),end) forwards,blink 0.5s step-end 3;}
+@keyframes typing{from{width:0}to{width:100%}}
+@keyframes blink{50%{border-color:transparent}}
+
+.inv-divider{height:1px;background:linear-gradient(90deg,transparent,#e0e0e0,transparent);margin:16px 0;}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.inv-section-label{font-size:0.6rem;font-weight:700;color:#1a6bff;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.inv-value{font-size:0.8rem;color:#333;font-weight:500;}
+.inv-value-sm{font-size:0.7rem;color:#666;}
+
+.inv-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:0.7rem;}
+.inv-table th{background:#f8f9ff;padding:6px 8px;text-align:left;font-weight:700;color:#1a1a2e;border-bottom:2px solid #e0e8ff;}
+.inv-table td{padding:6px 8px;border-bottom:1px solid #f0f0f0;color:#444;}
+.inv-table tr:nth-child(even) td{background:#fafbff;}
+
+.inv-totals{margin-top:12px;}
+.inv-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:0.72rem;color:#555;}
+.inv-total-row.grand{border-top:2px solid #1a6bff;margin-top:6px;padding-top:8px;font-weight:800;font-size:0.9rem;color:#1a1a2e;}
+.inv-total-row.grand .amt{color:#1a6bff;}
+
+.inv-footer{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;}
+.inv-qr{width:64px;height:64px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:4px;display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.inv-qr-cell{background:#1a1a2e;border-radius:0.5px;}
+.inv-qr-cell.w{background:#fff;}
+.inv-sig{text-align:right;}
+.inv-sig-line{font-size:1.1rem;font-family:'Dancing Script',cursive;color:#1a1a2e;font-style:italic;font-weight:700;margin-bottom:2px;}
+.inv-sig-label{font-size:0.6rem;color:#888;border-top:1px solid #ccc;padding-top:4px;}
+.inv-stamp{position:absolute;bottom:80px;right:30px;width:70px;height:70px;border-radius:50%;border:3px double #1a6bff;display:flex;align-items:center;justify-content:center;color:#1a6bff;font-size:0.55rem;font-weight:700;text-align:center;transform:rotate(-20deg);opacity:0;animation:stampAppear 0.5s ease 4.5s forwards;text-transform:uppercase;letter-spacing:1px;padding:8px;}
+@keyframes stampAppear{0%{opacity:0;transform:rotate(-20deg) scale(2);}60%{opacity:1;transform:rotate(-20deg) scale(0.9);}100%{opacity:0.7;transform:rotate(-20deg) scale(1);}}
+
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.8),transparent);animation:scan 2s ease-in-out 1.5s forwards;top:0;opacity:0;}
+@keyframes scan{0%{top:0;opacity:1;}100%{top:100%;opacity:0;}}
+
+#inv-cta{position:absolute;bottom:-56px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a6bff,#00d4ff);color:#fff;border:none;border-radius:30px;padding:12px 36px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 8px 32px rgba(26,107,255,0.45);white-space:nowrap;opacity:0;animation:fadeUp 0.6s ease 5s forwards;transition:transform 0.2s,box-shadow 0.2s;letter-spacing:0.3px;}
+#inv-cta:hover{transform:translateX(-50%) translateY(-2px);box-shadow:0 12px 40px rgba(26,107,255,0.6);}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+
+#invoice-left,#invoice-right{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;opacity:0;}
+#invoice-left{clip-path:polygon(0 0,50% 0,50% 100%,0 100%);}
+#invoice-right{clip-path:polygon(50% 0,100% 0,100% 100%,50% 100%);}
+.split-active #invoice-left{animation:splitLeft 0.9s cubic-bezier(0.5,0,0.75,0) forwards;}
+.split-active #invoice-right{animation:splitRight 0.9s cubic-bezier(0.5,0,0.75,0) forwards;}
+@keyframes splitLeft{0%{opacity:1;transform:translateX(0) rotate(0deg);}100%{opacity:0;transform:translateX(-120%) rotate(-15deg);}}
+@keyframes splitRight{0%{opacity:1;transform:translateX(0) rotate(0deg);}100%{opacity:0;transform:translateX(120%) rotate(15deg);}}
+
+.paper-particle{position:absolute;width:6px;height:8px;background:#fff;border-radius:1px;pointer-events:none;animation:paperFly 1s ease-out forwards;}
+@keyframes paperFly{0%{opacity:1;transform:translate(0,0) rotate(0deg);}100%{opacity:0;transform:translate(var(--tx,40px),var(--ty,-80px)) rotate(var(--tr,180deg));}}
+
+#main-site{position:relative;z-index:10;opacity:0;transition:opacity 1s ease;pointer-events:none;}
+#main-site.visible{opacity:1;pointer-events:all;}
+
+#navbar{position:fixed;top:0;left:0;right:0;z-index:200;padding:16px 0;transition:all 0.4s ease;}
+#navbar.scrolled{background:rgba(4,14,31,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,212,255,0.1);padding:10px 0;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-brand-icon{width:36px;height:36px;background:linear-gradient(135deg,#1a6bff,#00d4ff);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.nav-brand-text{font-size:1.1rem;font-weight:800;color:#fff;letter-spacing:-0.5px;}
+.nav-link-item{
+    color:#ffffff !important;
+    font-size:0.95rem;
+    font-weight:700;      /* Bold */
+    padding:6px 14px !important;
+    text-decoration:none !important;  /* Remove underline */
+    transition:all 0.3s ease;
+}
+
+.nav-link-item:hover{
+    color:#00d4ff !important;
+    text-decoration:none !important;
+}
+.nav-btn{background:linear-gradient(135deg,#1a6bff,#00d4ff);color:#fff!important;border-radius:20px;padding:7px 20px!important;font-weight:0;font-size:0.85rem;box-shadow:0 4px 16px rgba(26,107,255,0.35);transition:box-shadow 0.2s,transform 0.2s;}
+.nav-btn:hover{box-shadow:0 6px 24px rgba(26,107,255,0.5);transform:translateY(-1px);}
+
+#hero{min-height:100vh;display:flex;align-items:center;padding-top:80px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);border-radius:20px;padding:6px 14px;font-size:0.75rem;color:var(--blue-neon);font-weight:600;margin-bottom:24px;letter-spacing:0.5px;}
+.hero-eyebrow .dot{width:6px;height:6px;background:var(--blue-neon);border-radius:50%;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,0.5);}50%{box-shadow:0 0 0 6px rgba(0,212,255,0);}}
+.hero-title{font-size:clamp(2.6rem,6vw,4.5rem);font-weight:900;line-height:1.07;letter-spacing:-2px;margin-bottom:20px;}
+.hero-title .grad{background:linear-gradient(135deg,#fff 30%,#00d4ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-subtitle{font-size:1.05rem;color:var(--text-secondary);line-height:1.7;max-width:480px;margin-bottom:36px;}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-primary-glow{background:linear-gradient(135deg,#1a6bff,#00d4ff);color:#fff;border:none;border-radius:30px;padding:14px 32px;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 8px 32px rgba(26,107,255,0.4);transition:all 0.2s;letter-spacing:0.3px;}
+.btn-primary-glow:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(26,107,255,0.55);}
+.btn-ghost{background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:30px;padding:14px 28px;font-size:0.95rem;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);transition:all 0.2s;display:flex;align-items:center;gap:8px;}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);}
+
+.hero-stats{display:flex;gap:32px;margin-top:40px;flex-wrap:wrap;}
+.stat{display:flex;flex-direction:column;}
+.stat-num{font-size:1.6rem;font-weight:800;color:#fff;letter-spacing:-1px;}
+.stat-label{font-size:0.72rem;color:var(--text-muted);font-weight:500;}
+
+.dash-wrap{position:relative;}
+.dashboard{background:rgba(255,255,255,0.03);border:1px solid rgba(0,212,255,0.15);border-radius:20px;padding:20px;backdrop-filter:blur(20px);box-shadow:0 40px 80px rgba(0,0,0,0.4),0 0 80px rgba(0,212,255,0.06);animation:dashFloat 6s ease-in-out infinite;}
+@keyframes dashFloat{0%,100%{transform:translateY(0px);}50%{transform:translateY(-12px);}}
+.dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.dash-title{font-size:0.8rem;font-weight:700;color:var(--text-secondary);}
+.dash-badge{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--blue-neon);padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:600;}
+.dash-chart{height:90px;position:relative;margin-bottom:16px;}
+.dash-chart svg{width:100%;height:100%;}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.dash-metric{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px;}
+.dash-metric-label{font-size:0.6rem;color:var(--text-muted);font-weight:500;margin-bottom:4px;}
+.dash-metric-val{font-size:1rem;font-weight:800;color:#fff;}
+.dash-metric-val.green{color:#4ade80;}
+.dash-metric-val.blue{color:var(--blue-neon);}
+.dash-tx{margin-top:4px;}
+.dash-tx-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.dash-tx-name{font-size:0.7rem;color:var(--text-secondary);}
+.dash-tx-amt{font-size:0.7rem;font-weight:700;}
+.dash-tx-amt.pos{color:#4ade80;}
+
+.section{padding:100px 0;}
+.section-eyebrow{font-size:0.75rem;font-weight:700;color:var(--blue-neon);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;}
+.section-title{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;letter-spacing:-1px;margin-bottom:16px;line-height:1.1;}
+.section-subtitle{font-size:1rem;color:var(--text-secondary);max-width:560px;line-height:1.7;}
+
+.feat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;transition:all 0.3s ease;height:100%;}
+.feat-card:hover{background:rgba(0,212,255,0.05);border-color:rgba(0,212,255,0.25);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.3),0 0 30px rgba(0,212,255,0.08);}
+.feat-icon{width:48px;height:48px;background:linear-gradient(135deg,rgba(26,107,255,0.2),rgba(0,212,255,0.2));border:1px solid rgba(0,212,255,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--blue-neon);margin-bottom:16px;}
+.feat-title{font-size:1rem;font-weight:700;margin-bottom:8px;}
+.feat-desc{font-size:0.83rem;color:var(--text-secondary);line-height:1.65;}
+
+.price-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px;height:100%;transition:all 0.3s;}
+.price-card.featured{background:rgba(0,212,255,0.05);border-color:rgba(0,212,255,0.4);box-shadow:0 0 60px rgba(0,212,255,0.1);position:relative;}
+.price-popular{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a6bff,#00d4ff);color:#fff;font-size:0.7rem;font-weight:700;padding:4px 16px;border-radius:20px;white-space:nowrap;}
+.price-name{font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;}
+.price-amount{font-size:2.8rem;font-weight:900;letter-spacing:-2px;margin-bottom:4px;}
+.price-amount sup{font-size:1.2rem;vertical-align:top;margin-top:8px;font-weight:700;color:var(--blue-neon);}
+.price-amount .period{font-size:0.85rem;font-weight:400;color:var(--text-muted);}
+.price-desc{font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;}
+.price-features{list-style:none;margin-bottom:28px;}
+.price-features li{font-size:0.83rem;color:var(--text-secondary);padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:8px;}
+.price-features li i{color:var(--blue-neon);font-size:14px;}
+.btn-price{width:100%;padding:13px;border-radius:30px;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.2s;border:none;}
+.btn-price.outline{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#fff;}
+.btn-price.outline:hover{border-color:var(--blue-neon);color:var(--blue-neon);}
+.btn-price.solid{background:linear-gradient(135deg,#1a6bff,#00d4ff);color:#fff;box-shadow:0 8px 24px rgba(26,107,255,0.4);}
+.btn-price.solid:hover{box-shadow:0 12px 32px rgba(26,107,255,0.55);transform:translateY(-1px);}
+
+.testi-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;height:100%;transition:all 0.3s;}
+.testi-card:hover{border-color:rgba(0,212,255,0.25);transform:translateY(-3px);}
+.testi-stars{color:#fbbf24;margin-bottom:14px;font-size:0.85rem;letter-spacing:2px;}
+.testi-text{font-size:0.88rem;color:var(--text-secondary);line-height:1.7;margin-bottom:20px;font-style:italic;}
+.testi-author{display:flex;align-items:center;gap:12px;}
+.testi-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a6bff,#00d4ff);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:#fff;}
+.testi-name{font-size:0.85rem;font-weight:700;}
+.testi-role{font-size:0.7rem;color:var(--text-muted);}
+
+.faq-item{border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;margin-bottom:12px;transition:border-color 0.3s;}
+.faq-item.open{border-color:rgba(0,212,255,0.3);}
+.faq-q{padding:18px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;font-weight:600;color:#fff;background:rgba(255,255,255,0.03);transition:background 0.2s;}
+.faq-q:hover{background:rgba(255,255,255,0.05);}
+.faq-q i{transition:transform 0.3s;color:var(--blue-neon);flex-shrink:0;}
+.faq-item.open .faq-q i{transform:rotate(45deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.4s ease;}
+.faq-item.open .faq-a{max-height:200px;}
+.faq-a-inner{padding:0 20px 18px;font-size:0.84rem;color:var(--text-secondary);line-height:1.7;}
+
+.form-control-custom.error{border-color:#f87171!important;box-shadow:0 0 0 3px rgba(248,113,113,0.15)!important;}
+.field-error{font-size:0.72rem;color:#f87171;margin-top:5px;display:none;}
+.field-error.show{display:block;}
+.input-icon-wrap{position:relative;}
+.input-icon-wrap .toggle-pw{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:14px;padding:0;transition:color .2s;}
+.input-icon-wrap .toggle-pw:hover{color:#fff;}
+.pw-strength-bar{height:3px;border-radius:2px;background:rgba(255,255,255,0.08);margin-top:6px;overflow:hidden;display:none;}
+.pw-strength-bar.show{display:block;}
+.pw-strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%;}
+.pw-strength-text{font-size:0.68rem;margin-top:3px;display:none;}
+.pw-strength-text.show{display:block;}
+
+.sb-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.72);backdrop-filter:blur(10px);padding:16px;overflow-y:auto;}
+.sb-overlay.open{display:flex;}
+.sb-modal{background:linear-gradient(145deg,#0d1f3c,#091526);border:1px solid rgba(0,212,255,0.22);border-radius:24px;width:100%;max-width:480px;box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 60px rgba(0,212,255,0.07);animation:sbModalIn .4s cubic-bezier(.34,1.56,.64,1) forwards;max-height:90vh;overflow-y:auto;position:relative;}
+.sb-modal.wide{max-width:680px;}
+@keyframes sbModalIn{from{opacity:0;transform:scale(.94) translateY(24px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.sb-modal-top{display:flex;justify-content:space-between;align-items:center;padding:24px 28px 0;}
+.sb-modal-body{padding:20px 28px 32px;}
+.sb-close{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.sb-close:hover{background:rgba(255,255,255,0.12);color:#fff;}
+
+.mo-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px;}
+.mo-logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#1a6bff,#00d4ff);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;}
+.mo-logo-text{font-size:1.2rem;font-weight:800;}
+.mo-title{text-align:center;font-size:1.4rem;font-weight:800;margin-bottom:5px;letter-spacing:-.5px;}
+.mo-sub{text-align:center;font-size:0.82rem;color:var(--text-muted);margin-bottom:24px;}
+
+.mo-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;margin-bottom:22px;}
+.mo-tab{flex:1;padding:9px;border:none;background:transparent;color:rgba(255,255,255,.45);font-size:.83rem;font-weight:600;cursor:pointer;border-radius:9px;transition:all .2s;font-family:'Inter',sans-serif;}
+.mo-tab.active{background:rgba(0,212,255,0.14);color:var(--blue-neon);box-shadow:0 0 0 1px rgba(0,212,255,.25);}
+
+.mf-group{margin-bottom:15px;}
+.mf-label{font-size:.77rem;font-weight:600;color:var(--text-secondary);margin-bottom:5px;display:block;}
+.mf-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;color:#fff;font-size:.88rem;font-family:'Inter',sans-serif;transition:border-color .2s,box-shadow .2s;outline:none;}
+.mf-input::placeholder{color:rgba(255,255,255,.22);}
+.mf-input:focus{border-color:var(--blue-neon);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+.mf-input.err{border-color:#f87171;box-shadow:0 0 0 3px rgba(248,113,113,.1);}
+.mf-input.ok{border-color:#4ade80;}
+.mf-err{font-size:.71rem;color:#f87171;margin-top:4px;display:none;}
+.mf-err.show{display:block;}
+.mf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mf-pw-wrap{position:relative;}
+.mf-pw-wrap .eye-btn{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:14px;padding:0;}
+.mf-pw-wrap .eye-btn:hover{color:#fff;}
+.mf-check{display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;}
+.mf-check input[type=checkbox]{accent-color:var(--blue-neon);margin-top:2px;width:14px;height:14px;cursor:pointer;}
+.mf-check label{font-size:.79rem;color:var(--text-secondary);cursor:pointer;line-height:1.5;}
+.mf-check a{color:var(--blue-neon);text-decoration:none;}
+.mf-forgot{font-size:.77rem;color:var(--blue-neon);text-decoration:none;display:block;text-align:right;margin-top:-10px;margin-bottom:14px;}
+.mf-forgot:hover{text-decoration:underline;}
+
+.btn-glow{width:100%;background:linear-gradient(135deg,#1a6bff,#00d4ff);color:#fff;border:none;border-radius:30px;padding:14px;font-size:.93rem;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(26,107,255,.4);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter',sans-serif;letter-spacing:.3px;}
+.btn-glow:hover:not(:disabled){box-shadow:0 12px 32px rgba(26,107,255,.55);transform:translateY(-1px);}
+.btn-glow:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.btn-glow.mb{margin-bottom:14px;}
+.btn-outline-mo{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:30px;padding:13px;font-size:.88rem;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;margin-bottom:18px;font-family:'Inter',sans-serif;}
+.btn-outline-mo:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22);}
+.btn-outline-mo svg{width:18px;height:18px;flex-shrink:0;}
+.mo-divider{text-align:center;font-size:.74rem;color:var(--text-muted);margin:14px 0;position:relative;}
+.mo-divider::before,.mo-divider::after{content:'';position:absolute;top:50%;width:calc(50% - 20px);height:1px;background:rgba(255,255,255,.09);}
+.mo-divider::before{left:0;}.mo-divider::after{right:0;}
+.mo-footer-txt{text-align:center;font-size:.79rem;color:var(--text-muted);}
+.mo-footer-txt a{color:var(--blue-neon);text-decoration:none;font-weight:600;cursor:pointer;}
+.mo-footer-txt a:hover{text-decoration:underline;}
+
+
+
+.fp-step{display:none;}.fp-step.active{display:block;}
+.fp-icon{text-align:center;font-size:2.8rem;margin-bottom:14px;}
+.otp-inputs{display:flex;gap:8px;justify-content:center;margin:16px 0;}
+.otp-inputs input{width:44px;height:52px;text-align:center;font-size:1.3rem;font-weight:700;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;outline:none;transition:border-color .2s;}
+.otp-inputs input:focus{border-color:var(--blue-neon);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+.otp-inputs input.filled{border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.06);}
+
+#toast-container{position:fixed;top:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;max-width:320px;}
+.toast-item{padding:13px 16px;border-radius:12px;font-size:.83rem;font-weight:500;display:flex;align-items:center;gap:10px;pointer-events:all;animation:toastSlideIn .4s cubic-bezier(.34,1.56,.64,1) forwards;box-shadow:0 8px 28px rgba(0,0,0,.4);color:#fff;}
+.toast-item i{font-size:16px;flex-shrink:0;}
+.toast-item.success{background:#064e3b;border:1px solid #4ade80;}.toast-item.success i{color:#4ade80;}
+.toast-item.error{background:#450a0a;border:1px solid #f87171;}.toast-item.error i{color:#f87171;}
+.toast-item.info{background:#0c2a4a;border:1px solid var(--blue-neon);}.toast-item.info i{color:var(--blue-neon);}
+.toast-item.warn{background:#422006;border:1px solid #fbbf24;}.toast-item.warn i{color:#fbbf24;}
+.toast-item.out{animation:toastOut .3s ease forwards;}
+@keyframes toastSlideIn{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:translateX(0);}}
+@keyframes toastOut{from{opacity:1;}to{opacity:0;transform:translateX(30px);}}
+
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spinning .65s linear infinite;flex-shrink:0;}
+@keyframes spinning{to{transform:rotate(360deg);}}
+
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease;}
+.reveal.revealed{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.1s;}.reveal-delay-2{transition-delay:.2s;}.reveal-delay-3{transition-delay:.3s;}
+
+.glow-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.orb-blue{width:400px;height:400px;background:rgba(0,212,255,.06);top:-100px;right:-100px;}
+.orb-purple{width:300px;height:300px;background:rgba(99,0,255,.05);bottom:0;left:-80px;}
+
+footer{background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);padding:60px 0 30px;}
+.footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.footer-brand-icon{width:36px;height:36px;background:linear-gradient(135deg,#1a6bff,#00d4ff);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.footer-desc{font-size:0.82rem;color:var(--text-muted);line-height:1.7;max-width:260px;}
+.footer-heading{font-size:0.75rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;}
+.footer-links{list-style:none;}
+.footer-links li{margin-bottom:10px;}
+.footer-links a{font-size:0.82rem;color:var(--text-muted);text-decoration:none;transition:color 0.2s;}
+.footer-links a:hover{color:#fff;}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding-top:24px;margin-top:48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.footer-copy{font-size:0.78rem;color:var(--text-muted);}
+.footer-socials{display:flex;gap:12px;}
+.social-btn{width:32px;height:32px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px;transition:all 0.2s;text-decoration:none;}
+.social-btn:hover{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.3);color:var(--blue-neon);}
+
+.brand-sub{position:fixed;top:24%;left:6%;color:rgba(0,212,255,.22);letter-spacing:5px;font-size:18px;font-weight:700;pointer-events:none;z-index:101;}
+.bg-icons{position:absolute;inset:0;pointer-events:none;z-index:101;}
+.bg-icon{position:absolute;font-size:32px;color:rgba(255,255,255,.12);filter:drop-shadow(0 0 10px rgba(0,212,255,.25));animation:floatIcon 8s ease-in-out infinite;}
+.icon1{top:28%;left:12%;animation-duration:7s;}
+.icon2{top:45%;left:18%;animation-duration:9s;}
+.icon3{top:65%;left:10%;animation-duration:8s;}
+.icon4{top:30%;right:14%;animation-duration:10s;}
+.icon5{top:55%;right:12%;animation-duration:9s;}
+@keyframes floatIcon{0%{transform:translateY(0) rotate(0deg);}25%{transform:translateY(-10px) rotate(4deg);}50%{transform:translateY(-20px) rotate(-4deg);}75%{transform:translateY(-8px) rotate(2deg);}100%{transform:translateY(0) rotate(0deg);}}
+
+@media(max-width:992px){}
+.hero-side-logo{
+    position:absolute;
+    top:20px;
+    left:20px;
+    z-index:150;
+}
+
+.hero-side-logo img{
+    width:320px;
+    height:auto;
+    object-fit:contain;
+}
+@media(max-width:768px){
+  .hero-title{font-size:2.4rem;}
+  #invoice-wrap{width:94vw;}#invoice{padding:20px 16px;}
+  .inv-grid{grid-template-columns:1fr;}
+  .inv-table{font-size:0.62rem;}.inv-table th,.inv-table td{padding:4px 5px;}
+  .section{padding:60px 0;}.dashboard{margin-top:40px;}
+  .mf-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body class="no-scroll">
+
+<canvas id="bg-canvas"></canvas>
+
+<div id="float-world"></div>
+
+<!-- ===== SCENE OVERLAY ===== -->
+<div id="scene-overlay">
+  <div class="hero-side-logo">
+    <img src="assets/logoo (2).png" alt="Invoice Hub Logo">
+</div>
+
+  <div class="bg-icons">
+    <i class="bi bi-currency-rupee bg-icon icon1"></i>
+    <i class="bi bi-receipt bg-icon icon2"></i>
+    <i class="bi bi-file-earmark-text bg-icon icon3"></i>
+  </div>
+  <div id="invoice-wrap">
+    <div id="invoice-left"></div>
+    <div id="invoice-right"></div>
+    <div id="invoice">
+      <div class="scan-line"></div>
+      <div class="inv-stamp">PAID<br>✓</div>
+      <div class="inv-header">
+        <div class="inv-logo">
+          <div class="inv-logo-icon"><i class="bi bi-receipt-cutoff"></i></div>
+          <div>
+            <div class="inv-logo-text">INVOICE HUB</div>
+            <div class="inv-logo-sub">GSTIN: 29AABCS1429B1Z1</div>
+          </div>
+        </div>
+        <div class="inv-meta">
+          <div class="inv-title">INVOICE </div>
+          <div class="inv-num" id="inv-num">Generating...</div>
+          <div class="inv-badge">● PROCESSING</div>
+        </div>
+      </div>
+      <div class="inv-divider"></div>
+      <div class="inv-grid">
+        <div>
+          <div class="inv-section-label">Bill To</div>
+          <div class="inv-value write-anim" id="inv-name" style="--chars:14"><span>BINARY BRAINS</span></div>
+          <div class="inv-value-sm write-anim" id="inv-gst" style="--chars:20"><span>GSTIN: 27AAKCA1234B1Z5</span></div>
+          <div class="inv-value-sm" style="color:#888;font-size:0.65rem;margin-top:2px;">Mumbai, Maharashtra</div>
+        </div>
+        <div>
+          <div class="inv-section-label">Invoice Details</div>
+          <div class="inv-value-sm">Date: <span id="inv-date"></span></div>
+          <div class="inv-value-sm">Due: 30 Days</div>
+          <div class="inv-value-sm">PO#: PO-2024-089</div>
+          <div class="inv-value-sm">HSN: 9983</div>
+        </div>
+      </div>
+      <table class="inv-table">
+        <thead>
+          <tr><th>#</th><th>Description</th><th>HSN</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
+        </thead>
+        <tbody id="inv-tbody">
+          <tr><td colspan="6" style="text-align:center;color:#bbb;padding:8px;font-size:0.65rem;">Adding items...</td></tr>
+        </tbody>
+      </table>
+      <div style="display:flex;gap:16px;justify-content:flex-end;">
+        <div class="inv-totals" style="min-width:200px;">
+          <div class="inv-total-row"><span>Subtotal</span><span id="t-sub">—</span></div>
+          <div class="inv-total-row"><span>CGST @9%</span><span id="t-cgst">—</span></div>
+          <div class="inv-total-row"><span>SGST @9%</span><span id="t-sgst">—</span></div>
+          <div class="inv-total-row grand"><span>Grand Total</span><span class="amt" id="t-total">—</span></div>
+        </div>
+      </div>
+      <div class="inv-footer" style="margin-top:16px;">
+        <div>
+          <div class="inv-qr" id="inv-qr" style="opacity:0;transition:opacity 0.5s;">
+            <div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div>
+            <div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div>
+            <div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div>
+            <div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div>
+            <div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div>
+            <div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div>
+            <div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell w"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div><div class="inv-qr-cell"></div>
+          </div>
+          <div style="font-size:0.55rem;color:#aaa;text-align:center;margin-top:3px;">Scan to Pay</div>
+        </div>
+        <div style="flex:1;margin:0 12px;align-self:flex-end;">
+          <div style="font-size:0.6rem;color:#aaa;margin-bottom:4px;">Terms & Conditions</div>
+          <div style="font-size:0.58rem;color:#bbb;line-height:1.4;">Payment due within 30 days. Late payments attract 2% monthly interest. Cheque subject to realization.</div>
+        </div>
+        <div class="inv-sig">
+          <div class="inv-sig-line" id="inv-sig" style="opacity:0;transition:opacity 0.5s;"></div>
+          <div class="inv-sig-label">Authorized Signatory</div>
+        </div>
+      </div>
+    </div>
+    <button id="inv-cta" onclick="splitInvoice()">
+      <i class="bi bi-arrow-right-circle me-2"></i>Enter INVOICE HUB
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- ======================================================
+     AUTH MODAL
+     ====================================================== -->
+<div class="sb-overlay" id="auth-overlay">
+  <div class="sb-modal" id="auth-modal">
+    <div class="sb-modal-top">
+      <div></div>
+      <button class="sb-close" onclick="closeOverlay('auth-overlay')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sb-modal-body">
+      <div class="mo-logo">
+        <div class="mo-logo-icon"><i class="bi bi-receipt-cutoff"></i></div>
+        <div class="mo-logo-text">INVOICE HUB</div>
+      </div>
+      <div class="mo-tabs">
+        <button class="mo-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="mo-tab" id="tab-signup" onclick="switchAuthTab('signup')">Create Account</button>
+      </div>
+
+      <!-- SIGN IN FORM -->
+      <div id="form-signin">
+        <div class="mo-sub">Welcome back — sign in to your dashboard.</div>
+       
+        <div class="mf-group">
+          <label class="mf-label">Email Address</label>
+         <input
+    type="email"
+    class="mf-input"
+    id="si-email"
+    placeholder="you@company.com"
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+    name="no-email">
+          <div class="mf-err" id="si-email-err"></div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Password</label>
+          <div class="mf-pw-wrap">
+       <input type="password"
+       class="mf-input"
+       id="si-password"
+       placeholder="Your password"
+       autocomplete="off"
+       style="padding-right:44px;">
+            <button class="eye-btn" type="button" onclick="toggleEye('si-password',this)"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="mf-err" id="si-pass-err"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <label style="display:flex;align-items:center;gap:7px;font-size:.79rem;color:var(--text-secondary);cursor:pointer;">
+            <input type="checkbox" id="si-remember" style="accent-color:var(--blue-neon);"> Remember me
+          </label>
+          <a href="#" class="mf-forgot" onclick="openForgotOverlay();return false;">Forgot password?</a>
+        </div>
+        <button class="btn-glow mb" id="btn-signin" onclick="doSignIn()">
+          <i class="bi bi-box-arrow-in-right"></i> Sign In
+        </button>
+        <div class="mo-divider">or continue with</div>
+        <button class="btn-outline-mo" onclick="doGoogleAuth()">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+        <div class="mo-footer-txt">Don't have an account? <a onclick="switchAuthTab('signup')">Create one free →</a></div>
+      </div>
+
+      <!-- SIGN UP FORM -->
+      <div id="form-signup" style="display:none;">
+        <div class="mo-sub">Join 50,000+ businesses. Free to start, no card needed.</div>
+        <div class="mf-row">
+          <div class="mf-group">
+            <label class="mf-label">First Name</label>
+            <input type="text" class="mf-input" id="su-fname" placeholder="Rajesh" autocomplete="given-name">
+            <div class="mf-err" id="su-fname-err"></div>
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Last Name</label>
+            <input type="text" class="mf-input" id="su-lname" placeholder="Kumar" autocomplete="family-name">
+            <div class="mf-err" id="su-lname-err"></div>
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Business / Company Name</label>
+          <input type="text" class="mf-input" id="su-biz" placeholder="Kumar Enterprises Pvt. Ltd." autocomplete="organization">
+          <div class="mf-err" id="su-biz-err"></div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Email Address</label>
+<input type="email"
+       class="mf-input"
+       id="si-email"
+       placeholder="you@company.com"
+       autocomplete="off"
+       autocorrect="off"
+       autocapitalize="off"
+       spellcheck="false">
+          <div class="mf-err" id="su-email-err"></div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Phone Number</label>
+          <input type="tel" class="mf-input" id="su-phone" placeholder="+91 98765 43210" autocomplete="tel">
+          <div class="mf-err" id="su-phone-err"></div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Password</label>
+          <div class="mf-pw-wrap">
+            <input type="password" class="mf-input" id="su-pw" placeholder="Min 8 characters" autocomplete="new-password" style="padding-right:44px;" oninput="evalPwStrength(this.value,'su-pw-bar','su-pw-text')">
+            <button class="eye-btn" type="button" onclick="toggleEye('su-pw',this)"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="mf-err" id="su-pw-err"></div>
+          <div class="pw-strength-bar" id="su-pw-bar"><div class="pw-strength-fill" id="su-pw-fill"></div></div>
+          <div class="pw-strength-text" id="su-pw-text"></div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Confirm Password</label>
+          <div class="mf-pw-wrap">
+            <input type="password" class="mf-input" id="su-cpw" placeholder="Repeat password" autocomplete="new-password" style="padding-right:44px;">
+            <button class="eye-btn" type="button" onclick="toggleEye('su-cpw',this)"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="mf-err" id="su-cpw-err"></div>
+        </div>
+        <div class="mf-check">
+          <input type="checkbox" id="su-terms">
+          <label for="su-terms">I agree to the <a href="#" onclick="showToast('Terms of Service','info');return false;">Terms of Service</a> &amp; <a href="#" onclick="showToast('Privacy Policy','info');return false;">Privacy Policy</a></label>
+        </div>
+        <div class="mf-err" id="su-terms-err" style="margin-top:-8px;margin-bottom:12px;"></div>
+        <button class="btn-glow mb" id="btn-signup" onclick="doSignUp()">
+          <i class="bi bi-person-plus"></i> Create Free Account
+        </button>
+        <div class="mo-divider">or</div>
+        <button class="btn-outline-mo" onclick="doGoogleAuth()">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Sign up with Google
+        </button>
+        <div class="mo-footer-txt">Already have an account? <a onclick="switchAuthTab('signin')">Sign in →</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="sb-overlay" id="forgot-overlay">
+  <div class="sb-modal">
+    <div class="sb-modal-top">
+      <div></div>
+      <button class="sb-close" onclick="closeOverlay('forgot-overlay');openAuthOverlay('signin')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sb-modal-body">
+      <div class="fp-step active" id="fp1">
+        <div class="fp-icon">🔑</div>
+        <div class="mo-title">Forgot Password?</div>
+        <div class="mo-sub">Enter your registered email and we'll send a reset OTP.</div>
+        <div class="mf-group">
+          <label class="mf-label">Registered Email</label>
+        <input type="email"
+       class="mf-input"
+       id="si-email"
+       placeholder="you@company.com"
+       autocomplete="off"
+       autocorrect="off"
+       autocapitalize="off"
+       spellcheck="false">
+          <div class="mf-err" id="fp-email-err"></div>
+        </div>
+        <button class="btn-glow mb" onclick="fpStep1()"><i class="bi bi-send"></i> Send OTP</button>
+        <div class="mo-footer-txt"><a onclick="closeOverlay('forgot-overlay');openAuthOverlay('signin')">← Back to Sign In</a></div>
+      </div>
+      <div class="fp-step" id="fp2">
+        <div class="fp-icon">📩</div>
+        <div class="mo-title">Enter OTP</div>
+        <div class="mo-sub" id="fp2-sub">We've sent a 6-digit code to your email.</div>
+        <div class="otp-inputs" id="otp-inputs">
+          <input type="text" maxlength="1" oninput="otpNext(this,0)" onkeydown="otpBack(this,event,0)">
+          <input type="text" maxlength="1" oninput="otpNext(this,1)" onkeydown="otpBack(this,event,1)">
+          <input type="text" maxlength="1" oninput="otpNext(this,2)" onkeydown="otpBack(this,event,2)">
+          <input type="text" maxlength="1" oninput="otpNext(this,3)" onkeydown="otpBack(this,event,3)">
+          <input type="text" maxlength="1" oninput="otpNext(this,4)" onkeydown="otpBack(this,event,4)">
+          <input type="text" maxlength="1" oninput="otpNext(this,5)" onkeydown="otpBack(this,event,5)">
+        </div>
+        <div class="mf-err" id="fp-otp-err" style="text-align:center;margin-bottom:12px;"></div>
+        <div style="text-align:center;font-size:.75rem;color:var(--text-muted);margin-bottom:16px;">💡 Hint: use <strong style="color:var(--blue-neon);">1 2 3 4 5 6</strong></div>
+        <button class="btn-glow mb" onclick="fpStep2()"><i class="bi bi-shield-check"></i> Verify OTP</button>
+        <div class="mo-footer-txt"><a onclick="fpGoTo(1)">Resend OTP</a></div>
+      </div>
+      <div class="fp-step" id="fp3">
+        <div class="fp-icon">🔐</div>
+        <div class="mo-title">Set New Password</div>
+        <div class="mo-sub">Create a strong new password for your account.</div>
+        <div class="mf-group">
+          <label class="mf-label">New Password</label>
+          <div class="mf-pw-wrap">
+            <input type="password" class="mf-input" id="fp-np" placeholder="Min 8 characters" style="padding-right:44px;" oninput="evalPwStrength(this.value,'fp-np-bar','fp-np-text')">
+            <button class="eye-btn" type="button" onclick="toggleEye('fp-np',this)"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="mf-err" id="fp-np-err"></div>
+          <div class="pw-strength-bar" id="fp-np-bar"><div class="pw-strength-fill" id="fp-np-fill"></div></div>
+          <div class="pw-strength-text" id="fp-np-text"></div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Confirm New Password</label>
+          <div class="mf-pw-wrap">
+            <input type="password" class="mf-input" id="fp-cp" placeholder="Repeat password" style="padding-right:44px;">
+            <button class="eye-btn" type="button" onclick="toggleEye('fp-cp',this)"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="mf-err" id="fp-cp-err"></div>
+        </div>
+        <button class="btn-glow" onclick="fpStep3()"><i class="bi bi-arrow-clockwise"></i> Reset Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO MODAL -->
+<div class="sb-overlay" id="demo-overlay">
+  <div class="sb-modal wide">
+    <div class="sb-modal-top">
+      <div style="font-size:1.1rem;font-weight:700;">SmartBilling — Product Demo</div>
+      <button class="sb-close" onclick="closeOverlay('demo-overlay')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sb-modal-body">
+      <div style="background:linear-gradient(135deg,#0d2447,#0a1628);border:1px solid rgba(0,212,255,.18);border-radius:14px;height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;position:relative;margin-bottom:20px;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,212,255,.07),transparent 70%);"></div>
+        <button onclick="showToast('▶ Demo video playing…','info')" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#1a6bff,#00d4ff);border:none;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;cursor:pointer;box-shadow:0 0 40px rgba(0,212,255,.4);transition:transform .2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">▶</button>
+        <div style="font-size:.92rem;color:var(--text-secondary);font-weight:600;z-index:1;">Full Product Walkthrough · 3 Minutes</div>
+        <div style="position:absolute;top:12px;right:14px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:var(--blue-neon);padding:3px 10px;border-radius:20px;font-size:.64rem;font-weight:700;">LIVE DEMO</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;text-align:center;"><i class="bi bi-file-earmark-text" style="font-size:22px;color:var(--blue-neon);display:block;margin-bottom:6px;"></i><span style="font-size:.72rem;color:var(--text-secondary);">GST Invoicing</span></div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;text-align:center;"><i class="bi bi-graph-up-arrow" style="font-size:22px;color:var(--blue-neon);display:block;margin-bottom:6px;"></i><span style="font-size:.72rem;color:var(--text-secondary);">Analytics</span></div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;text-align:center;"><i class="bi bi-qr-code" style="font-size:22px;color:var(--blue-neon);display:block;margin-bottom:6px;"></i><span style="font-size:.72rem;color:var(--text-secondary);">UPI Payments</span></div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;text-align:center;"><i class="bi bi-boxes" style="font-size:22px;color:var(--blue-neon);display:block;margin-bottom:6px;"></i><span style="font-size:.72rem;color:var(--text-secondary);">Inventory</span></div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;text-align:center;"><i class="bi bi-people" style="font-size:22px;color:var(--blue-neon);display:block;margin-bottom:6px;"></i><span style="font-size:.72rem;color:var(--text-secondary);">Customers</span></div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;text-align:center;"><i class="bi bi-robot" style="font-size:22px;color:var(--blue-neon);display:block;margin-bottom:6px;"></i><span style="font-size:.72rem;color:var(--text-secondary);">AI Assistant</span></div>
+      </div>
+      <button class="btn-glow" onclick="closeOverlay('demo-overlay');openAuthOverlay('signup')"><i class="bi bi-rocket-takeoff"></i> Start Free — No Credit Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN SITE -->
+<div id="main-site">
+  <nav id="navbar">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="#" class="nav-brand">
+          <div class="nav-brand-icon"><i class="bi bi-receipt-cutoff"></i></div>
+          <span class="nav-brand-text">SmartBilling</span>
+        </a>
+        <div class="d-none d-md-flex align-items-center gap-1">
+          <a href="#features" class="nav-link-item">Features</a>
+          <a href="#pricing" class="nav-link-item">Pricing</a>
+          <a href="#testimonials" class="nav-link-item">Testimonials</a>
+          <a href="#faq" class="nav-link-item">FAQ</a>
+          <a href="#" class="nav-link-item" onclick="openAuthOverlay('signin');return false;">Login</a>
+          <a href="#" class="nav-link-item nav-btn ms-2" onclick="openAuthOverlay('signin');return false;">Get Started</a>
+        </div>
+        <button class="d-md-none btn p-0 border-0" style="color:#fff;font-size:1.4rem;" data-bs-toggle="collapse" data-bs-target="#mobileNav">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+      <div class="collapse" id="mobileNav" style="background:rgba(4,14,31,0.95);border-radius:12px;margin-top:10px;padding:10px;">
+        <a href="#features" class="d-block nav-link-item py-2">Features</a>
+        <a href="#pricing" class="d-block nav-link-item py-2">Pricing</a>
+        <a href="#testimonials" class="d-block nav-link-item py-2">Testimonials</a>
+        <a href="#faq" class="d-block nav-link-item py-2">FAQ</a>
+        <a href="#" class="d-block nav-link-item py-2" onclick="openAuthOverlay('signin')">Login</a>
+        <a href="#" class="d-block nav-btn text-center mt-2 py-2 rounded-pill" onclick="openAuthOverlay('signin')">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <section id="hero">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <div class="hero-eyebrow"><span class="dot"></span>AI-Powered GST Billing Platform</div>
+          <h1 class="hero-title"><span class="grad">INVOICE HUB,</span><br>Made Effortless.</h1>
+          <p class="hero-subtitle">Manage GST invoicing, inventory, customers, reports and analytics from one intelligent platform. Built for Indian businesses.</p>
+          <div class="hero-btns">
+            <button class="btn-primary-glow" onclick="openAuthOverlay('signin')">Get Started Free</button>
+            <button class="btn-ghost" onclick="openDemoOverlay()"><i class="bi bi-play-circle-fill"></i> Watch Demo</button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat"><span class="stat-num" data-target="50000">0</span><span class="stat-label">Businesses</span></div>
+            <div class="stat"><span class="stat-num" data-target="2000000">0</span><span class="stat-label">Invoices Generated</span></div>
+            <div class="stat"><span class="stat-num" data-target="99">0</span><span class="stat-label">% Uptime</span></div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="dash-wrap position-relative">
+            <div class="glow-orb orb-blue"></div>
+            <div class="glow-orb orb-purple"></div>
+            <div class="dashboard">
+              <div class="dash-header">
+                <span class="dash-title">Revenue Dashboard</span>
+                <span class="dash-badge">● Live</span>
+              </div>
+              <div class="dash-chart">
+                <svg viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg">
+                  <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00d4ff" stop-opacity="0.35"/><stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/></linearGradient></defs>
+                  <path d="M0,70 L40,55 L80,60 L120,35 L160,45 L200,20 L240,30 L280,15 L320,25 L360,10 L400,18 L400,90 L0,90 Z" fill="url(#chartGrad)"/>
+                  <path d="M0,70 L40,55 L80,60 L120,35 L160,45 L200,20 L240,30 L280,15 L320,25 L360,10 L400,18" fill="none" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="400" cy="18" r="4" fill="#00d4ff"><animate attributeName="r" values="4;6;4" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/></circle>
+                </svg>
+              </div>
+              <div class="dash-grid">
+                <div class="dash-metric"><div class="dash-metric-label">Monthly Revenue</div><div class="dash-metric-val blue" id="d-rev">₹0</div></div>
+                <div class="dash-metric"><div class="dash-metric-label">Invoices Today</div><div class="dash-metric-val" id="d-inv">0</div></div>
+                <div class="dash-metric"><div class="dash-metric-label">GST Filed</div><div class="dash-metric-val green">✓ On Time</div></div>
+                <div class="dash-metric"><div class="dash-metric-label">Customers</div><div class="dash-metric-val" id="d-cust">0</div></div>
+              </div>
+              <div class="dash-tx">
+                <div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Recent Transactions</div>
+                <div class="dash-tx-row"><span class="dash-tx-name">Sharma Traders</span><span class="dash-tx-amt pos">+₹24,500</span></div>
+                <div class="dash-tx-row"><span class="dash-tx-name">Kapoor Industries</span><span class="dash-tx-amt pos">+₹1,18,000</span></div>
+                <div class="dash-tx-row"><span class="dash-tx-name">Mehta & Sons</span><span class="dash-tx-amt pos">+₹67,200</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <div class="text-center mb-5 reveal">
+        <div class="section-eyebrow">Platform Features</div>
+        <h2 class="section-title">Everything your business needs</h2>
+        <p class="section-subtitle mx-auto">A complete GST billing suite — from invoice generation to inventory management and analytics.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-1"><div class="feat-card"><div class="feat-icon"><i class="bi bi-file-earmark-text"></i></div><div class="feat-title">GST Invoice Generator</div><p class="feat-desc">Create professional GST-compliant invoices in seconds. Auto-calculate CGST, SGST, IGST. E-invoice and IRN generation built-in.</p></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-2"><div class="feat-card"><div class="feat-icon"><i class="bi bi-boxes"></i></div><div class="feat-title">Inventory Management</div><p class="feat-desc">Real-time stock tracking with low-stock alerts. Manage products, HSN codes, and pricing in one centralized system.</p></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-3"><div class="feat-card"><div class="feat-icon"><i class="bi bi-graph-up-arrow"></i></div><div class="feat-title">Business Analytics</div><p class="feat-desc">Interactive dashboards with revenue trends, customer insights, and GST summaries. Make data-driven decisions instantly.</p></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-1"><div class="feat-card"><div class="feat-icon"><i class="bi bi-qr-code"></i></div><div class="feat-title">UPI QR Payments</div><p class="feat-desc">Embed UPI QR codes directly on invoices. Accept payments from any UPI app instantly. Auto-reconcile with invoices.</p></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-2"><div class="feat-card"><div class="feat-icon"><i class="bi bi-people"></i></div><div class="feat-title">Customer Management</div><p class="feat-desc">Maintain a complete customer ledger with GSTIN, payment history, outstanding dues, and automated reminders.</p></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-3"><div class="feat-card"><div class="feat-icon"><i class="bi bi-robot"></i></div><div class="feat-title">AI Assistant</div><p class="feat-desc">Our AI analyzes your business data to predict cash flow, suggest pricing, flag compliance risks, and automate GST filing.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing" style="background:rgba(0,0,0,0.2);">
+    <div class="container">
+      <div class="text-center mb-5 reveal">
+        <div class="section-eyebrow">Pricing</div>
+        <h2 class="section-title">Simple, transparent pricing</h2>
+        <p class="section-subtitle mx-auto">Start free. Scale as your business grows. No hidden fees, no GST surprises.</p>
+      </div>
+      <div class="row g-4 justify-content-center">
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-1"><div class="price-card"><div class="price-name">Starter</div><div class="price-amount"><sup>₹</sup>0<span class="period">/mo</span></div><div class="price-desc">For freelancers and small businesses</div><ul class="price-features"><li><i class="bi bi-check-circle-fill"></i> 50 Invoices/month</li><li><i class="bi bi-check-circle-fill"></i> 1 User</li><li><i class="bi bi-check-circle-fill"></i> Basic GST Reports</li><li><i class="bi bi-check-circle-fill"></i> PDF Download</li><li><i class="bi bi-dash"></i> UPI QR Payments</li><li><i class="bi bi-dash"></i> Inventory Management</li></ul><button class="btn-price outline" onclick="openAuthOverlay('signup')">Start Free</button></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-2"><div class="price-card featured"><div class="price-popular">Most Popular</div><div class="price-name">Professional</div><div class="price-amount"><sup>₹</sup>999<span class="period">/mo</span></div><div class="price-desc">For growing businesses</div><ul class="price-features"><li><i class="bi bi-check-circle-fill"></i> Unlimited Invoices</li><li><i class="bi bi-check-circle-fill"></i> 5 Users</li><li><i class="bi bi-check-circle-fill"></i> Full GST Suite (GSTR-1/3B)</li><li><i class="bi bi-check-circle-fill"></i> UPI QR Payments</li><li><i class="bi bi-check-circle-fill"></i> Inventory Management</li><li><i class="bi bi-check-circle-fill"></i> Advanced Analytics</li></ul><button class="btn-price solid" onclick="openAuthOverlay('signup')">Get Started</button></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-3"><div class="price-card"><div class="price-name">Enterprise</div><div class="price-amount"><sup>₹</sup>2,999<span class="period">/mo</span></div><div class="price-desc">For large businesses & CA firms</div><ul class="price-features"><li><i class="bi bi-check-circle-fill"></i> Unlimited Everything</li><li><i class="bi bi-check-circle-fill"></i> Unlimited Users</li><li><i class="bi bi-check-circle-fill"></i> E-Invoice & IRN</li><li><i class="bi bi-check-circle-fill"></i> AI Assistant</li><li><i class="bi bi-check-circle-fill"></i> API Access</li><li><i class="bi bi-check-circle-fill"></i> Dedicated Support</li></ul><button class="btn-price outline" onclick="showToast('Our sales team will reach out soon! 📞','info')">Contact Sales</button></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="testimonials">
+    <div class="container">
+      <div class="text-center mb-5 reveal"><div class="section-eyebrow">Testimonials</div><h2 class="section-title">Trusted by 50,000+ businesses</h2></div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-1"><div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-text">"INVOICE HUBcompletely transformed how we manage our GST invoicing. What used to take us hours now takes minutes. The QR payment feature is phenomenal."</p><div class="testi-author"><div class="testi-avatar">RK</div><div><div class="testi-name">Ramesh Kumar</div><div class="testi-role">Owner, Kumar Traders, Delhi</div></div></div></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-2"><div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-text">"As a CA managing 40+ clients, SmartBilling's multi-client dashboard is a lifesaver. GSTR filing is now fully automated and error-free."</p><div class="testi-author"><div class="testi-avatar">PS</div><div><div class="testi-name">Priya Shah</div><div class="testi-role">Chartered Accountant, Mumbai</div></div></div></div></div>
+        <div class="col-md-6 col-lg-4 reveal reveal-delay-3"><div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-text">"The inventory management and invoice integration is seamless. Our billing errors dropped to zero. Best GST software in India, hands down."</p><div class="testi-author"><div class="testi-avatar">AM</div><div><div class="testi-name">Amit Mehta</div><div class="testi-role">MD, Mehta Manufacturing, Pune</div></div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" style="background:rgba(0,0,0,0.2);">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="text-center mb-5 reveal"><div class="section-eyebrow">FAQ</div><h2 class="section-title">Frequently asked questions</h2></div>
+          <div id="faq-list">
+            <div class="faq-item reveal"><div class="faq-q" onclick="toggleFAQ(this)">Is INVOICE HUBcompliant with latest GST rules? <i class="bi bi-plus-circle"></i></div><div class="faq-a"><div class="faq-a-inner">Yes!Invoice Hub is fully compliant with the latest GST regulations including e-invoicing for businesses with turnover above ₹5 Crore, GSTR-1, GSTR-3B, QR code mandate, and IRN generation via NIC portal integration.</div></div></div>
+            <div class="faq-item reveal reveal-delay-1"><div class="faq-q" onclick="toggleFAQ(this)">Can I migrate data from Tally or Zoho Books? <i class="bi bi-plus-circle"></i></div><div class="faq-a"><div class="faq-a-inner">Absolutely. Invoice Hub supports bulk data import via Excel and CSV formats. Our migration team also provides free white-glove migration assistance for Professional and Enterprise plans.</div></div></div>
+            <div class="faq-item reveal reveal-delay-2"><div class="faq-q" onclick="toggleFAQ(this)">Is my data secure? <i class="bi bi-plus-circle"></i></div><div class="faq-a"><div class="faq-a-inner">We use bank-grade AES-256 encryption, ISO 27001 certified data centers in India, automated daily backups, and are fully DPDP Act compliant. Your data never leaves Indian servers.</div></div></div>
+            <div class="faq-item reveal reveal-delay-3"><div class="faq-q" onclick="toggleFAQ(this)">Does it work offline? <i class="bi bi-plus-circle"></i></div><div class="faq-a"><div class="faq-a-inner">Invoice Hub has a Progressive Web App (PWA) mode that lets you create invoices offline. Data syncs automatically when you reconnect. Our Android and iOS apps also support offline mode.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6"><div class="footer-brand"><div class="footer-brand-icon"><i class="bi bi-receipt-cutoff"></i></div><span style="font-size:1.1rem;font-weight:800;">SmartBilling</span></div><p class="footer-desc">India's most intelligent GST billing platform. Trusted by 50,000+ businesses across 500+ cities.</p></div>
+        <div class="col-lg-2 col-md-3 col-6"><div class="footer-heading">Product</div><ul class="footer-links"><li><a href="#">Features</a></li><li><a href="#">Pricing</a></li><li><a href="#">Integrations</a></li><li><a href="#">Changelog</a></li></ul></div>
+        <div class="col-lg-2 col-md-3 col-6"><div class="footer-heading">Company</div><ul class="footer-links"><li><a href="#">About Us</a></li><li><a href="#">Blog</a></li><li><a href="#">Careers</a></li><li><a href="#">Press</a></li></ul></div>
+        <div class="col-lg-2 col-md-3 col-6"><div class="footer-heading">Legal</div><ul class="footer-links"><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li><li><a href="#">Cookie Policy</a></li><li><a href="#">GDPR</a></li></ul></div>
+        <div class="col-lg-2 col-md-3 col-6"><div class="footer-heading">Support</div><ul class="footer-links"><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Status</a></li><li><a href="#">Community</a></li></ul></div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2025 SmartBilling. All rights reserved. GST: 29AABCS1429B1Z1</div>
+        <div class="footer-socials">
+          <a href="#" class="social-btn"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-linkedin"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-youtube"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div><!-- /main-site -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const ADMIN_EMAIL = 'admin@smartbilling.com';
+const ADMIN_PW    = 'Admin@123';
+const ADMIN_PW_B64 = btoa(unescape(encodeURIComponent(ADMIN_PW)));
+
+/* ============================================================
+   IndexedDB
+   ============================================================ */
+const DB_NAME = 'SmartBillingDB';
+const DB_VER  = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    if (db) { res(db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('users')) {
+        const s = d.createObjectStore('users', { keyPath: 'email' });
+        s.createIndex('email', 'email', { unique: true });
+      }
+    };
+    req.onsuccess = async e => {
+      db = e.target.result;
+      // ── Seed default admin on first run ──
+      await seedAdmin();
+      res(db);
+    };
+    req.onerror = e => rej(e.target.error);
+  });
+}
+
+async function seedAdmin() {
+  // Check if admin already exists; if not, create it
+  const existing = await dbGetUser(ADMIN_EMAIL).catch(() => null);
+  if (!existing) {
+    const adminUser = {
+      email   : ADMIN_EMAIL,
+      fname   : 'Admin',
+      lname   : '',
+      biz     : 'Invoice Hub HQ',
+      phone   : '+91 00000 00000',
+      pw      : ADMIN_PW_B64,
+      plan    : 'Enterprise',
+      role    : 'admin',
+      created : new Date().toISOString(),
+      id      : 1
+    };
+    await dbPutUser(adminUser);
+  }
+}
+
+async function dbGetUser(email) {
+  const d = await openDB();
+  return new Promise((res, rej) => {
+    const tx  = d.transaction('users', 'readonly');
+    const req = tx.objectStore('users').get(email);
+    req.onsuccess = e => res(e.target.result || null);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function dbPutUser(user) {
+  const d = await openDB();
+  return new Promise((res, rej) => {
+    const tx  = d.transaction('users', 'readwrite');
+    const req = tx.objectStore('users').put(user);
+    req.onsuccess = () => res(true);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+/* ============================================================
+   SESSION
+   ============================================================ */
+function setSession(u, remember) {
+  const data = JSON.stringify({
+    email : u.email,
+    fname : u.fname,
+    lname : u.lname,
+    biz   : u.biz,
+    plan  : u.plan  || 'Free',
+    role  : u.role  || 'user'
+  });
+  sessionStorage.setItem('sb_sess', data);
+  if (remember) localStorage.setItem('sb_sess_r', data);
+}
+function getSession() {
+  try {
+    const d = sessionStorage.getItem('sb_sess') || localStorage.getItem('sb_sess_r');
+    return d ? JSON.parse(d) : null;
+  } catch { return null; }
+}
+function clearSession() {
+  sessionStorage.removeItem('sb_sess');
+  localStorage.removeItem('sb_sess_r');
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function showToast(msg, type='info', dur=3800) {
+  const icons = { success:'bi-check-circle-fill', error:'bi-x-circle-fill', info:'bi-info-circle-fill', warn:'bi-exclamation-triangle-fill' };
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast-item ${type}`;
+  t.innerHTML = `<i class="bi ${icons[type]||icons.info}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 350); }, dur);
+}
+
+/* ============================================================
+   OVERLAYS
+   ============================================================ */
+function openAuthOverlay(tab='signin') {
+  closeAllOverlays();
+  switchAuthTab(tab);
+  document.getElementById('auth-overlay').classList.add('open');
+  document.body.classList.add('no-scroll');
+}
+function openDemoOverlay() {
+  closeAllOverlays();
+  document.getElementById('demo-overlay').classList.add('open');
+  document.body.classList.add('no-scroll');
+}
+function openForgotOverlay() {
+  closeAllOverlays();
+  fpGoTo(1);
+  document.getElementById('forgot-overlay').classList.add('open');
+  document.body.classList.add('no-scroll');
+}
+function closeOverlay(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.classList.remove('no-scroll');
+}
+function closeAllOverlays() {
+  document.querySelectorAll('.sb-overlay.open').forEach(o => o.classList.remove('open'));
+  document.body.classList.remove('no-scroll');
+}
+document.addEventListener('click', e => { if (e.target.classList.contains('sb-overlay')) closeAllOverlays(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllOverlays(); });
+
+/* ============================================================
+   AUTH TABS
+   ============================================================ */
+function switchAuthTab(tab) {
+  const isSignin = tab === 'signin';
+  document.getElementById('tab-signin').classList.toggle('active', isSignin);
+  document.getElementById('tab-signup').classList.toggle('active', !isSignin);
+  document.getElementById('form-signin').style.display = isSignin ? 'block' : 'none';
+  document.getElementById('form-signup').style.display = isSignin ? 'none'  : 'block';
+}
+
+/* ============================================================
+   FORM HELPERS
+   ============================================================ */
+function showMfErr(id, msg) {
+  const inp = document.getElementById(id);
+  if (inp) inp.classList.add('err');
+  const e = document.getElementById(id + '-err');
+  if (e) { e.textContent = msg; e.classList.add('show'); }
+}
+function clearMfErr(id) {
+  const inp = document.getElementById(id);
+  if (inp) inp.classList.remove('err');
+  const e = document.getElementById(id + '-err');
+  if (e) { e.textContent = ''; e.classList.remove('show'); }
+}
+function clearAllErrs(...ids) { ids.forEach(clearMfErr); }
+function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
+function isPhone(v) { return /^[\d\s\+\-\(\)]{10,15}$/.test(v.trim()); }
+function toggleEye(id, btn) {
+  const inp  = document.getElementById(id);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+}
+function setBtnLoading(id, loading, label) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<div class="spin"></div> Please wait…' : label;
+}
+function evalPwStrength(val, barId, textId) {
+  const bar  = document.getElementById(barId);
+  const fill = document.getElementById(barId.replace('-bar','-fill'));
+  const txt  = document.getElementById(textId);
+  if (!bar) return;
+  if (!val) { bar.classList.remove('show'); txt.classList.remove('show'); return; }
+  bar.classList.add('show'); txt.classList.add('show');
+  let s = 0;
+  if (val.length >= 8) s++;
+  if (/[A-Z]/.test(val)) s++;
+  if (/[0-9]/.test(val)) s++;
+  if (/[^A-Za-z0-9]/.test(val)) s++;
+  const lvls = [
+    { w:'20%', c:'#f87171', t:'Very weak'  },
+    { w:'45%', c:'#fb923c', t:'Weak'       },
+    { w:'70%', c:'#fbbf24', t:'Good'       },
+    { w:'100%',c:'#4ade80', t:'Strong 💪'  },
+  ];
+  const l = lvls[Math.min(s - 1, 3)] || lvls[0];
+  fill.style.cssText = `width:${l.w};background:${l.c};`;
+  txt.textContent    = `Strength: ${l.t}`;
+  txt.style.color    = l.c;
+}
+
+/* ============================================================
+   SIGN IN  ← KEY CHANGE: admin check + routing
+   ============================================================ */
+async function doSignIn() {
+  const email    = document.getElementById('si-email').value.trim();
+  const pw       = document.getElementById('si-password').value;
+  const remember = document.getElementById('si-remember').checked;
+// Hardcoded Admin Login
+if (
+    email === "admin@invoicehub.com" &&
+    pw === "Admin@123"
+) {
+    localStorage.setItem("userRole", "admin");
+    localStorage.setItem("isLoggedIn", "true");
+
+    window.location.href = "admin-dashboard.html";
+    return;
+}
+
+const user = await dbGetUser(email);
+  clearAllErrs('si-email', 'si-pass');
+
+  let ok = true;
+  if (!isEmail(email)) { showMfErr('si-email', 'Enter a valid email address.'); ok = false; }
+  if (!pw)             { showMfErr('si-pass',  'Password is required.'); ok = false; }
+  if (!ok) return;
+
+  setBtnLoading('btn-signin', true, '');
+
+  try {
+    await openDB();
+    const user = await dbGetUser(email);
+
+    if (!user) {
+      showMfErr('si-email', 'No account found with this email.');
+      setBtnLoading('btn-signin', false, '<i class="bi bi-box-arrow-in-right"></i> Sign In');
+      return;
+    }
+
+    const encoded = btoa(unescape(encodeURIComponent(pw)));
+    if (user.pw !== encoded) {
+      showMfErr('si-pass', 'Incorrect password. Please try again.');
+      setBtnLoading('btn-signin', false, '<i class="bi bi-box-arrow-in-right"></i> Sign In');
+      return;
+    }
+
+    setSession(user, remember);
+    // ===============================
+// Save current user for dashboard/profile
+// ===============================
+const currentUser = {
+    name: `${user.fname} ${user.lname || ""}`.trim(),
+    email: user.email,
+    phone: user.phone || "",
+    biz: user.biz || "",
+    role: user.role || "Customer",
+    created: user.created,
+    profilePic: user.profilePic || ""
+};
+
+localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+localStorage.setItem(
+    "createdDate",
+    new Date(user.created).toLocaleDateString()
+);
+
+localStorage.setItem(
+    "lastLogin",
+    new Date().toLocaleString()
+);
+    closeAllOverlays();
+
+    // ── Route based on role ──
+    if (user.role === 'admin') {
+      showToast(`🛡️ Welcome, Admin! Redirecting to Admin Dashboard…`, 'success');
+      setTimeout(() => { window.location.href = 'admin-dashboard.html'; }, 700);
+    } else {
+      showToast(`👋 Welcome back, ${user.fname}!`, 'success');
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast('Login failed. Please try again.', 'error');
+  } finally {
+    setBtnLoading('btn-signin', false, '<i class="bi bi-box-arrow-in-right"></i> Sign In');
+  }
+}
+
+/* ============================================================
+   SIGN UP  ← normal users always go to dashboard.html
+   ============================================================ */
+async function doSignUp() {
+  const fname = document.getElementById('su-fname').value.trim();
+  const lname = document.getElementById('su-lname').value.trim();
+  const biz   = document.getElementById('su-biz').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const phone = document.getElementById('su-phone').value.trim();
+  const pw    = document.getElementById('su-pw').value;
+  const cpw   = document.getElementById('su-cpw').value;
+  const terms = document.getElementById('su-terms').checked;
+
+  clearAllErrs('su-fname','su-lname','su-biz','su-email','su-phone','su-pw','su-cpw','su-terms');
+
+  let ok = true;
+  if (!fname)          { showMfErr('su-fname', 'First name is required.'); ok = false; }
+  if (!lname)          { showMfErr('su-lname', 'Last name is required.'); ok = false; }
+  if (!biz)            { showMfErr('su-biz',   'Business name is required.'); ok = false; }
+  if (!isEmail(email)) { showMfErr('su-email', 'Enter a valid email address.'); ok = false; }
+  if (!isPhone(phone)) { showMfErr('su-phone', 'Enter a valid 10-digit phone number.'); ok = false; }
+  if (pw.length < 8)   { showMfErr('su-pw',    'Password must be at least 8 characters.'); ok = false; }
+  if (pw !== cpw)      { showMfErr('su-cpw',   'Passwords do not match.'); ok = false; }
+  if (!terms)          { showMfErr('su-terms',  'You must accept the Terms of Service.'); ok = false; }
+  if (!ok) return;
+
+  // Block using admin email during signup
+  if (email.toLowerCase() === ADMIN_EMAIL) {
+    showMfErr('su-email', 'This email is reserved. Please use a different email.');
+    return;
+  }
+
+  setBtnLoading('btn-signup', true, '');
+
+  try {
+    await openDB();
+    const existing = await dbGetUser(email);
+    if (existing) {
+      setBtnLoading('btn-signup', false, '<i class="bi bi-person-plus"></i> Create Free Account');
+      showMfErr('su-email', 'This email is already registered. Please sign in instead.');
+      return;
+    }
+    const user = {
+      email, fname, lname, biz, phone,
+      pw      : btoa(unescape(encodeURIComponent(pw))),
+      plan    : 'Free',
+      role    : 'user',
+      created : new Date().toISOString(),
+      id      : Date.now()
+    };
+    await dbPutUser(user);
+    setSession(user, false);
+    closeAllOverlays();
+    showToast(`🎉 Welcome, ${fname}! Your account is ready.`, 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+  } catch (err) {
+    console.error(err);
+    showToast('Something went wrong. Please try again.', 'error');
+  } finally {
+    setBtnLoading('btn-signup', false, '<i class="bi bi-person-plus"></i> Create Free Account');
+  }
+}
+
+/* ============================================================
+   GOOGLE AUTH  ← always role:'user', goes to dashboard.html
+   ============================================================ */
+async function doGoogleAuth() {
+  const googleAccounts = [
+    { email:'demo.user@gmail.com',    fname:'Demo',   lname:'User',    biz:'Demo Business Pvt. Ltd.' },
+    { email:'test.account@gmail.com', fname:'Test',   lname:'Account', biz:'Test Corp India' },
+    { email:'sample@gmail.com',       fname:'Sample', lname:'User',    biz:'Sample Enterprises' },
+  ];
+  showToast('Connecting to Google…', 'info', 1600);
+  await new Promise(r => setTimeout(r, 1800));
+  const g = googleAccounts[Math.floor(Math.random() * googleAccounts.length)];
+  try {
+    await openDB();
+    let user = await dbGetUser(g.email);
+    if (!user) {
+      user = { ...g, pw:'__google_oauth__', phone:'', plan:'Free', role:'user', created:new Date().toISOString(), id:Date.now() };
+      await dbPutUser(user);
+    }
+    setSession(user, true);
+    closeAllOverlays();
+    showToast(`✅ Signed in with Google as ${user.fname}!`, 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+  } catch (err) {
+    console.error(err);
+    showToast('Google sign-in failed. Please try again.', 'error');
+  }
+}
+
+/* ============================================================
+   FORGOT PASSWORD
+   ============================================================ */
+let _fpEmail = '';
+let _fpOtp   = '';
+
+function fpGoTo(step) {
+  document.querySelectorAll('.fp-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('fp' + step).classList.add('active');
+}
+function fpStep1() {
+  const email = document.getElementById('fp-email').value.trim();
+  clearMfErr('fp-email');
+  if (!isEmail(email)) { showMfErr('fp-email','Enter a valid email address.'); return; }
+  const btn = document.querySelector('#fp1 .btn-glow');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Sending OTP…';
+  setTimeout(async () => {
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Send OTP';
+    _fpEmail = email;
+    _fpOtp   = '123456';
+    document.getElementById('fp2-sub').innerHTML = `We sent a code to <strong style="color:var(--blue-neon);">${email}</strong>`;
+    fpGoTo(2);
+    showToast('OTP sent! Use: 1 2 3 4 5 6', 'success');
+  }, 1400);
+}
+function otpNext(inp, idx) {
+  inp.classList.toggle('filled', inp.value.length > 0);
+  const inputs = document.querySelectorAll('#otp-inputs input');
+  if (inp.value && idx < 5) inputs[idx + 1].focus();
+}
+function otpBack(inp, e, idx) {
+  if (e.key === 'Backspace' && !inp.value && idx > 0)
+    document.querySelectorAll('#otp-inputs input')[idx - 1].focus();
+}
+function fpStep2() {
+  const inputs = document.querySelectorAll('#otp-inputs input');
+  const otp = Array.from(inputs).map(i => i.value).join('');
+  clearMfErr('fp-otp');
+  if (otp !== _fpOtp) { showMfErr('fp-otp', 'Invalid OTP. Use: 1 2 3 4 5 6'); return; }
+  fpGoTo(3);
+  showToast('OTP verified ✅', 'success');
+}
+async function fpStep3() {
+  const np = document.getElementById('fp-np').value;
+  const cp = document.getElementById('fp-cp').value;
+  clearAllErrs('fp-np','fp-cp');
+  let ok = true;
+  if (np.length < 8) { showMfErr('fp-np','Min 8 characters required.'); ok=false; }
+  if (np !== cp)     { showMfErr('fp-cp','Passwords do not match.'); ok=false; }
+  if (!ok) return;
+  const btn = document.querySelector('#fp3 .btn-glow');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Resetting…';
+  try {
+    await openDB();
+    const user = await dbGetUser(_fpEmail);
+    if (user) { user.pw = btoa(unescape(encodeURIComponent(np))); await dbPutUser(user); }
+    await new Promise(r => setTimeout(r, 1200));
+    closeAllOverlays();
+    showToast('Password reset successfully! Please sign in.', 'success');
+    setTimeout(() => { openAuthOverlay('signin'); document.getElementById('si-email').value = _fpEmail; }, 400);
+  } catch (err) {
+    console.error(err);
+    showToast('Reset failed. Please try again.', 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Reset Password';
+  }
+}
+
+/* ============================================================
+   CANVAS BACKGROUND
+   ============================================================ */
+const canvas = document.getElementById('bg-canvas');
+const ctx    = canvas.getContext('2d');
+let W, H, particles = [], nodes = [];
+function resizeCanvas() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+for (let i = 0; i < 180; i++) particles.push({ x:Math.random()*2000, y:Math.random()*1200, vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3, r:Math.random()*1.5+.3, alpha:Math.random()*.5+.1, color:Math.random()>.6?'0,212,255':'100,180,255' });
+for (let i = 0; i < 20; i++) nodes.push({ x:Math.random()*2000, y:Math.random()*1200, vx:(Math.random()-.5)*.2, vy:(Math.random()-.5)*.2 });
+function drawBG() {
+  ctx.clearRect(0,0,W,H);
+  const g = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.8);
+  g.addColorStop(0,'#081428'); g.addColorStop(1,'#020a14');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,212,255,0.04)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;});
+  for(let i=0;i<nodes.length;i++){for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<220){ctx.beginPath();ctx.strokeStyle=`rgba(0,212,255,${.12*(1-d/220)})`;ctx.lineWidth=.8;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();}}}
+  nodes.forEach(n=>{ctx.beginPath();ctx.arc(n.x,n.y,2,0,Math.PI*2);ctx.fillStyle='rgba(0,212,255,0.4)';ctx.fill();});
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${p.color},${p.alpha})`;ctx.shadowBlur=4;ctx.shadowColor=`rgba(${p.color},.5)`;ctx.fill();});
+  ctx.shadowBlur=0;
+  requestAnimationFrame(drawBG);
+}
+drawBG();
+
+/* ============================================================
+   FLOATING ELEMENTS
+   ============================================================ */
+const floatWorld = document.getElementById('float-world');
+const currencies = ['₹','$','€','£','¥','GST','UPI','TAX','₿','HSN'];
+const iconNames  = ['bi-receipt','bi-file-earmark-text','bi-qr-code','bi-graph-up','bi-wallet2','bi-bar-chart','bi-pie-chart','bi-cash-coin','bi-currency-rupee','bi-file-pdf'];
+const floatCards = ['Revenue +₹1.2L','Tax Filed ✓','Invoice #1042','GSTR-1 Due','+₹24,500','GST 18%','UPI ✓'];
+function makeFloat(){
+    const container = document.getElementById('float-world');
+
+    if(!container) {
+        console.error('float-world element not found');
+        return;
+    }
+
+    const el = document.createElement('div');
+    el.className = 'float-icon';
+
+    container.appendChild(el);
+}
+function spawnFloats(){makeFloat(['currency','currency','icon','doc','qr','card'][Math.floor(Math.random()*6)]);setTimeout(spawnFloats,400+Math.random()*600);}
+for(let i=0;i<30;i++) setTimeout(()=>makeFloat(['currency','icon','doc','qr','card'][Math.floor(Math.random()*5)]),i*200);
+spawnFloats();
+
+/* ============================================================
+   INVOICE ANIMATION
+   ============================================================ */
+const invItems = [
+  { desc:'Software Development Services', hsn:'9983', qty:'10', rate:'5,000', amt:'50,000' },
+  { desc:'Cloud Hosting (Annual)',         hsn:'9862', qty:'1',  rate:'18,000',amt:'18,000' },
+  { desc:'API Integration Module',         hsn:'8523', qty:'2',  rate:'12,500',amt:'25,000' },
+];
+document.getElementById('inv-date').textContent = new Date().toLocaleDateString('en-IN');
+setTimeout(()=>{ document.getElementById('inv-num').textContent='INV-2025-'+Math.floor(1000+Math.random()*9000); const b=document.querySelector('.inv-badge');b.textContent='● GENERATING';b.style.cssText='display:inline-block;padding:2px 8px;background:#fff3cd;color:#856404;border-radius:20px;font-size:.6rem;font-weight:600;margin-top:4px;'; },800);
+function typeAnimate(el,delay=0){setTimeout(()=>{el.style.cssText='width:0;display:inline-block;overflow:hidden;border-right:2px solid #1a6bff;white-space:nowrap;animation:typing .9s steps(22,end) forwards,blink .5s step-end 3';},delay);}
+setTimeout(()=>{ const nameEl=document.querySelector('#inv-name span'); const gstEl=document.querySelector('#inv-gst span'); if(nameEl) typeAnimate(nameEl,0); if(gstEl) typeAnimate(gstEl,900); },1200);
+setTimeout(()=>{
+  const tbody=document.getElementById('inv-tbody'); if(!tbody) return;
+  tbody.innerHTML='';
+  invItems.forEach((item,i)=>setTimeout(()=>{
+    const tr=document.createElement('tr'); tr.style.animation='fadeRowIn .3s ease forwards';
+    tr.innerHTML=`<td>${i+1}</td><td>${item.desc}</td><td>${item.hsn}</td><td>${item.qty}</td><td>₹${item.rate}</td><td>₹${item.amt}</td>`;
+    tbody.appendChild(tr);
+    if(i===invItems.length-1){setTimeout(()=>{document.getElementById('t-sub').textContent='₹93,000';setTimeout(()=>document.getElementById('t-cgst').textContent='₹8,370',200);setTimeout(()=>document.getElementById('t-sgst').textContent='₹8,370',400);setTimeout(()=>document.getElementById('t-total').textContent='₹1,09,740',700);},300);}
+  },i*500));
+},2800);
+setTimeout(()=>{const q=document.getElementById('inv-qr');if(q)q.style.opacity='1';},4000);
+setTimeout(()=>{const sig=document.getElementById('inv-sig');if(sig){sig.textContent='BINARY BRAINS';sig.style.cssText='opacity:1;font-size:1.2rem;font-family:cursive;color:#1a1a2e;font-style:italic;font-weight:700;margin-bottom:2px;transition:opacity .5s;';}},4200);
+setTimeout(()=>{const badge=document.querySelector('.inv-badge');if(badge){badge.textContent='● PAID';badge.style.cssText='display:inline-block;padding:2px 8px;background:#e8f5e9;color:#2e7d32;border-radius:20px;font-size:.6rem;font-weight:600;margin-top:4px;';}},4700);
+
+/* ============================================================
+   SPLIT INVOICE  → show main site
+   ============================================================ */
+function splitInvoice() {
+  const wrap      = document.getElementById('invoice-wrap');
+  const overlay   = document.getElementById('scene-overlay');
+  const leftHalf  = document.getElementById('invoice-left');
+  const rightHalf = document.getElementById('invoice-right');
+  const invoiceEl = document.getElementById('invoice');
+
+  const cloneL = invoiceEl.cloneNode(true);
+  const cloneR = invoiceEl.cloneNode(true);
+  cloneL.style.cssText = cloneR.style.cssText = 'position:absolute;top:0;left:0;width:100%;border-radius:12px;';
+  leftHalf.appendChild(cloneL); rightHalf.appendChild(cloneR);
+  leftHalf.style.opacity = rightHalf.style.opacity = '1';
+
+  const rect = invoiceEl.getBoundingClientRect();
+  for(let i=0;i<40;i++){
+    const p=document.createElement('div'); p.className='paper-particle';
+    const tx=(Math.random()-.5)*200,ty=-(40+Math.random()*120),tr=(Math.random()-.5)*400;
+    p.style.cssText=`left:${rect.left+Math.random()*rect.width}px;top:${rect.top+Math.random()*rect.height}px;position:fixed;z-index:9999;--tx:${tx}px;--ty:${ty}px;--tr:${tr}deg;`;
+    document.body.appendChild(p); setTimeout(()=>p.remove(),1100);
+  }
+  invoiceEl.style.visibility='hidden';
+  document.getElementById('inv-cta').style.display='none';
+  wrap.classList.add('split-active');
+
+  setTimeout(() => {
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+    document.getElementById('main-site').classList.add('visible');
+    document.body.classList.remove('no-scroll');
+    initSite();
+  }, 900);
+}
+
+/* ============================================================
+   INIT SITE
+   ============================================================ */
+function initSite() {
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+  });
+  document.querySelectorAll('.stat-num').forEach(el => {
+    const target = +el.dataset.target;
+    let start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      const prog=Math.min((ts-start)/1800,1), eased=1-Math.pow(1-prog,3), val=Math.round(eased*target);
+      if(target===50000)         el.textContent=(val/1000).toFixed(val>9000?0:1)+'K+';
+      else if(target===2000000)  el.textContent=(val/1000000).toFixed(val>1500000?1:2)+'M+';
+      else                       el.textContent=val+'%';
+      if(prog<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+  ['d-rev','d-inv','d-cust'].forEach((id,i)=>{
+    const targets=[4280000,247,1842], prefixes=['₹','',''];
+    const el=document.getElementById(id); if(!el) return;
+    let start=null;
+    function step(ts){if(!start)start=ts;const prog=Math.min((ts-start)/1500,1),eased=1-Math.pow(1-prog,3),val=Math.round(eased*targets[i]);el.textContent=(prefixes[i]==='₹'?'₹':'')+val.toLocaleString('en-IN');if(prog<1)requestAnimationFrame(step);}
+    requestAnimationFrame(step);
+  });
+  const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('revealed');ro.unobserve(e.target);}});},{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+}
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+function toggleFAQ(el) {
+  const item=el.parentElement, isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+const dynStyle = document.createElement('style');
+dynStyle.textContent = `
+  @keyframes typing    { from{width:0} to{width:100%} }
+  @keyframes blink     { 50%{border-color:transparent} }
+  @keyframes fadeRowIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+`;
+document.head.appendChild(dynStyle);
+
+/* ============================================================
+   DOMContentLoaded
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  const sess = getSession();
+  if (sess) {
+    const emailInp = document.getElementById('si-email');
+    if (emailInp) emailInp.value = sess.email;
+  }
+  openDB().catch(() => {});   // warm up DB + seed admin
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.getElementById("inv-date").textContent =
+        new Date().toLocaleDateString("en-IN");
+
+    const tbody = document.getElementById("inv-tbody");
+
+    tbody.innerHTML = `
+        <tr>
+            <td>1</td>
+            <td>Software Development</td>
+            <td>9983</td>
+            <td>10</td>
+            <td>₹5,000</td>
+            <td>₹50,000</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Cloud Hosting</td>
+            <td>9862</td>
+            <td>1</td>
+            <td>₹18,000</td>
+            <td>₹18,000</td>
+        </tr>
+    `;
+
+    document.getElementById("t-sub").textContent = "₹68,000";
+    document.getElementById("t-cgst").textContent = "₹6,120";
+    document.getElementById("t-sgst").textContent = "₹6,120";
+    document.getElementById("t-total").textContent = "₹80,240";
+
+    document.getElementById("inv-num").textContent =
+        "INV-" + Date.now();
+
+});
+
+</script>
+</body>
+</html>

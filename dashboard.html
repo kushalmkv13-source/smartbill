@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InvoiceHub - The Futuer of Digital Billing</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="dashboard.css" />
+    <style>
+      .sidebar-logo-img {
+        width: 40px;
+        height: auto;
+        margin-right: 12px;
+      }
+      .logo-container {
+        display: flex;
+        align-items: center;
+        padding: 10px 0;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div class="animated-background">
+      <div class="mesh-gradient"></div>
+      <canvas id="particleCanvas" class="particle-canvas"></canvas>
+    </div>
+
+    <div class="main-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo-container">
+            <img
+              src="assets/logoo (2).png"
+              alt="InvoiceHub Logo"
+              class="sidebar-logo-img"
+            />
+            <div class="logo-text">
+              <h3>InvoiceHub</h3>
+              <p>The Futer Of Digital Billing</p>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="dashboard.html" class="menu-item active">
+            <i class="bi bi-house-fill"></i><span>Dashboard</span>
+            <div class="active-indicator"></div>
+          </a>
+          <a href="invoice.html" class="menu-item">
+            <i class="bi bi-file-text"></i><span>Invoices</span>
+          </a>
+<a href="gst-calculator.html" class="menu-item">
+    <i class="bi bi-calculator"></i>
+    <span>GST Calculator</span>
+</a>
+          <a href="invoice-history.html" class="menu-item">
+            <i class="bi bi-clock-history"></i><span>Invoice History</span>
+          </a>
+          <a href="customer.html" class="menu-item">
+            <i class="bi bi-people-fill"></i><span>Customers</span>
+          </a>
+          <a href="product.html" class="menu-item">
+            <i class="bi bi-box-seam"></i><span>Products</span>
+          </a>
+          <a href="report.html" class="menu-item">
+            <i class="bi bi-bar-chart-fill"></i><span>Reports</span>
+          </a>
+
+          <div class="menu-divider"></div>
+
+          <!-- LINKED TO profile.html -->
+          <a
+            href="profile.html"
+            class="menu-item"
+            onclick="
+              window.location.href = 'profile.html';
+              return false;
+            "
+          >
+            <i class="bi bi-gear-fill"></i>
+            <span>Profile Settings</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="logout-btn" onclick="logout()">
+            <i class="bi bi-box-arrow-right"></i><span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <nav class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle"><i class="bi bi-list"></i></button>
+            <div class="search-container">
+              <i class="bi bi-search"></i>
+              <input type="text" placeholder="Search invoices..." />
+            </div>
+          </div>
+
+          <div class="topbar-right">
+            <div class="user-profile">
+              <img id="userAvatar" src="" alt="User Avatar" />
+              <div class="user-info">
+                <p class="user-name" id="topUserName">User</p>
+              </div>
+            </div>
+            <button
+              class="btn-new-invoice"
+              onclick="window.location.href = 'invoice.html'"
+            >
+              <i class="bi bi-plus-lg"></i> New Invoice
+            </button>
+          </div>
+        </nav>
+
+        <div class="dashboard-container">
+          <section class="welcome-section">
+            <div class="welcome-card">
+              <div class="welcome-content">
+                <h1>Hello <span id="welcomeName">User</span> 👋</h1>
+                <p>
+                  Welcome back to InvoiceHub. Let's grow your business today.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="stats-section">
+            <div class="stat-card">
+              <div class="stat-icon success">
+                <i class="bi bi-cash-coin"></i>
+              </div>
+              <div class="stat-content">
+                <p class="stat-label">Total Revenue</p>
+                <p class="stat-value counter" data-target="2348950">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon info"><i class="bi bi-file-text"></i></div>
+              <div class="stat-content">
+                <p class="stat-label">Total Invoices</p>
+                <p class="stat-value counter" data-target="2548">0</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="analytics-section">
+            <div class="card-section">
+              <div class="section-header"><h3>Revenue Overview</h3></div>
+              <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+              </div>
+            </div>
+            <div class="card-section">
+              <div class="section-header"><h3>Invoice Status</h3></div>
+              <div class="chart-small-container">
+                <canvas id="invoiceChart"></canvas>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="dashboard.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        if (currentUser) {
+          const uName = currentUser.name || "User";
+          document.getElementById("welcomeName").textContent = uName;
+          document.getElementById("topUserName").textContent = uName;
+          document.getElementById("userAvatar").src =
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(uName)}&background=00D4FF&color=fff`;
+        }
+      });
+
+      function logout() {
+        localStorage.removeItem("ih_sess");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>

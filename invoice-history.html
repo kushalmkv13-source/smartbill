@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance HUD - Invoice History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* ============================================================
+           CLEAN FUTURISTIC HUD STYLING (NO FLOATING ICONS)
+           ============================================================ */
+        body {
+            background: #020617; 
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
+
+        .hud-background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            /* Focus on the deep radial glow for atmosphere */
+            background: radial-gradient(circle at center, #0a192f 0%, #020617 100%);
+        }
+
+        /* HUD BACK BUTTON */
+        .btn-hud-back {
+            background: transparent;
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            border-radius: 30px;
+            padding: 8px 22px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .btn-hud-back:hover {
+            background: #00d4ff;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+        }
+
+        /* TABLE UI STYLING */
+        .table-glass {
+            background: rgba(13, 25, 48, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .text-neon { color: #00d4ff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
+        .badge.success { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid #22c55e; }
+        .badge.warning { background: rgba(250, 204, 21, 0.15); color: #facc15; border: 1px solid #facc15; }
+        
+        .search-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 5px 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            width: fit-content;
+        }
+
+        .search-container input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            width: 300px;
+            outline: none;
+        }
+
+        .history-page { width: 100%; min-height: 100vh; padding: 50px 40px; }
+
+        .empty-icon {
+            font-size: 3.5rem;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            margin-bottom: 15px;
+            display: block;
+        }
+   </style>
+</head>
+<body>
+
+    <div class="hud-background"></div>
+
+   <div class="container-fluid">
+        <main class="history-page">
+            
+            <a href="dashboard.html" class="btn-hud-back">
+                <i class="bi bi-arrow-left"></i> Back To Dashboard
+            </a>
+
+            <div class="dashboard-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="text-white fw-bold"><span class="text-neon">Invoice History</span></h2>
+                    
+                    <div class="d-flex gap-3">
+                        <div class="search-container">
+                            <i class="bi bi-search text-info"></i>
+                            <input type="text" id="searchInput" placeholder="Search for invoice ID...">
+                        </div>
+                        <select id="statusFilter" class="form-select bg-dark text-white border-info" style="width: 150px;">
+                            <option value="all">All Logs</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                        <button class="btn btn-outline-danger" onclick="clearHistory()">Delete  History</button>
+                    </div>
+                </div>
+
+                <div class="table-glass">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr class="text-info border-info" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                                <th class="pb-3">S.NO</th>
+                                <th class="pb-3">Invoice ID</th>
+                                <th class="pb-3">Coustomer Name</th>
+                                <th class="pb-3">Product Name</th>
+                                <th class="pb-3"> Payment Status</th>
+                                <th class="pb-3">Price </th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- Data dynamically loaded -->
+                        </tbody>
+                    </table>
+
+                    <div id="emptyState" class="text-center py-5 d-none">
+                        <i class="bi bi-shield-exclamation empty-icon"></i>
+                        <p class="fs-5">Invoice History Not found.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // DATA MANAGEMENT
+        document.addEventListener("DOMContentLoaded", fetchHistory);
+        document.getElementById('searchInput').addEventListener('input', fetchHistory);
+        document.getElementById('statusFilter').addEventListener('change', fetchHistory);
+
+        function fetchHistory() {
+            const tableBody = document.getElementById('historyTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            // Fetch invoices from localStorage
+            let history = JSON.parse(localStorage.getItem('invoicehub_history')) || [];
+
+            let filteredData = history.filter(item => {
+                const matchesSearch = item.invoiceNo.toLowerCase().includes(searchTerm) || 
+                                      item.customerName.toLowerCase().includes(searchTerm);
+                const matchesStatus = (statusFilter === 'all' || item.status === statusFilter);
+                return matchesSearch && matchesStatus;
+            });
+
+            tableBody.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                emptyState.classList.remove('d-none');
+            } else {
+                emptyState.classList.add('d-none');
+                filteredData.forEach((inv, index) => {
+                    const row = `
+                        <tr class="align-middle" style="border-bottom: 1px solid rgba(0, 212, 255, 0.05);">
+                            <td class="text-secondary small" style="font-family: monospace;">${inv.date}</td>
+                            <td class="text-info fw-bold">#${inv.invoiceNo}</td>
+                            <td class="text-white">${inv.customerName}</td>
+                            <td class="text-neon fw-bold">₹${parseFloat(inv.totalAmount).toLocaleString('en-IN')}</td>
+                            <td><span class="badge ${inv.status === 'Paid' ? 'success' : 'warning'}">${inv.status}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info me-2" title="Export PDF"><i class="bi bi-file-earmark-pdf"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteInvoice(${index})" title="Purge"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            }
+        }
+
+        function deleteInvoice(index) {
+            if (confirm("Permanently erase this data record?")) {
+                let history = JSON.parse(localStorage.getItem('invoicehub_history')) || [];
+                history.splice(index, 1);
+                localStorage.setItem('invoicehub_history', JSON.stringify(history));
+                fetchHistory();
+            }
+        }
+
+        function clearHistory() {
+            if (confirm("DANGER: Execute full system purge? All history will be lost.")) {
+                localStorage.removeItem('invoicehub_history');
+                fetchHistory();
+            }
+        }
+    </script>
+</body>
+</html>

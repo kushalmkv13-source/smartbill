@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InvoiceHub OS — Admin Dashboard</title>
+    <meta name="description" content="InvoiceHub admin dashboard for managing customers, products, reports, revenue analytics, and logged-in users." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="admin-dashboard.css" />
+  </head>
+  <body>
+    <div class="bg-layer" aria-hidden="true">
+      <div class="bg-grid"></div>
+      <div class="bg-blob bg-blob-1"></div>
+      <div class="bg-blob bg-blob-2"></div>
+      <div class="bg-blob bg-blob-3"></div>
+      <div class="bg-particles" id="bgParticles"></div>
+    </div>
+
+    <div class="app" id="app">
+      <aside class="sidebar glass" id="sidebar" aria-label="Primary navigation">
+        <div class="brand">
+    <img src="assets/logoo (2).png" alt="InvoiceHub Logo" class="brand-logo">
+
+    <div class="brand-text">
+        <div class="brand-name">InvoiceHub</div>
+        <div class="brand-sub">Admin Dashboard</div>
+    </div>
+</div>
+
+        <nav class="nav">
+          <a class="nav-item active" href="#"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+          <a class="nav-item" href="#"><i class="fa-solid fa-users"></i><span> Customers</span></a>
+          <a class="nav-item" href="#"><i class="fa-solid fa-boxes-stacked"></i><span>Products</span></a>
+          <a class="nav-item" href="#"><i class="fa-solid fa-file-lines"></i><span> Reports</span></a>
+          <a class="nav-item" href="#"><i class="fa-solid fa-chart-line"></i><span>View Revenue Analytics</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="logout-btn" id="logoutBtn" type="button" aria-label="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar glass">
+          <button class="icon-btn mobile-only" id="menuToggle" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+          <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="adminSearch" type="text" placeholder="Search customers, products, reports…" />
+          </div>
+          <div class="topbar-right">
+            <button class="icon-btn" id="notifBtn" type="button" aria-label="Notifications">
+              <i class="fa-regular fa-bell"></i>
+            </button>
+            <button class="profile" id="profileBtn" type="button" aria-label="Profile">
+              <div class="avatar" id="profileAvatar">RK</div>
+              <div class="profile-meta">
+                <div class="profile-name" id="profileName">Rohan Kapoor</div>
+                <div class="profile-role" id="profileRole">Admin</div>
+              </div>
+            </button>
+          </div>
+        </header>
+
+        <main class="content">
+          <section class="greet">
+            <div>
+              <h1>Good Morning, Admin <span class="wave">👋</span></h1>
+              <p class="muted">Manage customers, products, reports, revenue analytics, and logged-in users.</p>
+            </div>
+          </section>
+
+          <section class="kpi-grid">
+            <article class="card kpi">
+              <div class="kpi-head">
+                <div class="kpi-icon icon-primary"><i class="fa-solid fa-users"></i></div>
+              </div>
+              <div class="kpi-label">Total Customers</div>
+              <div class="kpi-value" id="kpiCustomers">1,284</div>
+            </article>
+
+            <article class="card kpi">
+              <div class="kpi-head">
+                <div class="kpi-icon icon-success"><i class="fa-solid fa-boxes-stacked"></i></div>
+              </div>
+              <div class="kpi-label">Total Products</div>
+              <div class="kpi-value" id="kpiProducts">248</div>
+            </article>
+
+            <article class="card kpi">
+              <div class="kpi-head">
+                <div class="kpi-icon icon-cyan"><i class="fa-solid fa-file-lines"></i></div>
+              </div>
+              <div class="kpi-label">Reports Generated</div>
+              <div class="kpi-value" id="kpiReports">96</div>
+            </article>
+
+            <article class="card kpi">
+              <div class="kpi-head">
+                <div class="kpi-icon icon-warn"><i class="fa-solid fa-chart-line"></i></div>
+              </div>
+              <div class="kpi-label">Revenue This Month</div>
+              <div class="kpi-value" id="kpiRevenue">₹12,48,500</div>
+            </article>
+          </section>
+
+          <section class="grid-2">
+            <article class="card chart-card">
+              <header class="card-head">
+                <div>
+                  <h2>Revenue Analytics</h2>
+                  <p class="muted">Monthly revenue trend.</p>
+                </div>
+              </header>
+              <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+            </article>
+
+            <article class="card">
+              <header class="card-head">
+                <div>
+                  <h2>Logged-in Users</h2>
+                  <p class="muted">Users currently online and their details.</p>
+                </div>
+              </header>
+              <div class="logged-summary">
+                <div class="logged-count"><span id="loggedCount">0</span> online</div>
+              </div>
+              <ul class="customer-list" id="loggedUsersList"></ul>
+            </article>
+          </section>
+
+          <section class="grid-2">
+            <article class="card">
+              <header class="card-head">
+                <div><h2>Top Products</h2><p class="muted">Ranked by revenue.</p></div>
+              </header>
+              <ul class="rank-list" id="topProducts"></ul>
+            </article>
+
+            <article class="card">
+              <header class="card-head">
+                <div><h2>Top Customers</h2><p class="muted">Highest lifetime value.</p></div>
+              </header>
+              <ul class="customer-list" id="topCustomers"></ul>
+            </article>
+          </section>
+
+          <section class="grid-2">
+            <article class="card">
+              <header class="card-head">
+                <div><h2>Recent Activity</h2><p class="muted">Workspace updates.</p></div>
+              </header>
+              <ul class="timeline" id="activityFeed"></ul>
+            </article>
+
+            <article class="card">
+              <header class="card-head">
+                <div><h2>Reports</h2><p class="muted">Recent generated reports.</p></div>
+              </header>
+              <ul class="timeline" id="reportsList"></ul>
+            </article>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="admin-dashboard.js" defer></script>
+  </body>
+</html>

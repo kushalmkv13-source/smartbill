@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Billing & GST Invoice System</title>
+    <!-- External Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- QR CODE LIBRARY - LOADED EARLY FOR RELIABLE AVAILABILITY -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --bg-deep: #0a0f1e;
+            --glass-bg: rgba(16, 22, 45, 0.7);
+            --accent-blue: #0050cc;
+            --neon-blue: #00b4ff;
+            --text-main: #e0e8ff;
+            --text-dim: #94a3b8;
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(0, 80, 204, 0.15) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(0, 180, 255, 0.1) 0%, transparent 40%);
+        }
+
+        h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Glassmorphism Components */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .glass-input{
+            background: rgba(255,255,255,.05) !important;
+            border:1px solid var(--border-glass) !important;
+            color:#fff !important;
+            border-radius:8px !important;
+            padding:10px 14px;
+        }
+        
+        .glass-input option{
+            background:#1a2442;
+            color:#fff;
+            padding:10px;
+        }
+
+        .products-card{
+            background:linear-gradient(145deg,#121b35,#0d1328);
+            border:1px solid rgba(0,180,255,.18);
+            border-radius:22px;
+            box-shadow:
+                0 15px 35px rgba(0,0,0,.45),
+                inset 0 1px 0 rgba(255,255,255,.05);
+        }
+
+        /* Product Table Inputs */
+        #prod-table input,
+        #prod-table select{
+            background:#223055 !important;
+            color:#fff !important;
+            border:1px solid rgba(255,255,255,.08)!important;
+            border-radius:8px;
+        }
+
+        #prod-table td{
+            vertical-align:middle;
+        }
+
+        #prod-table input,
+        #prod-table select{
+            height:40px;
+        }
+
+        .item-amt{
+            white-space:nowrap;
+            text-align:right;
+            font-weight:700;
+        }
+
+        #prod-table input::placeholder{
+            color:#94a3b8 !important;
+        }
+
+        #prod-table input:focus,
+        #prod-table select:focus{
+            background:#2b3d66 !important;
+            color:#fff !important;
+            border-color:#00b4ff !important;
+            box-shadow:0 0 12px rgba(0,180,255,.35)!important;
+        }
+
+        #prod-table tbody .glass-input::placeholder{
+            color:#94a3b8 !important;
+        }
+
+        #prod-table tbody input:focus,
+        #prod-table tbody select:focus{
+            outline:none;
+            box-shadow:none !important;
+        }
+
+        #prod-table input:-webkit-autofill{
+            -webkit-text-fill-color:#111827 !important;
+            transition: background-color 5000s;
+        }
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--neon-blue) !important;
+            box-shadow: 0 0 0 0.25rem rgba(0, 180, 255, 0.25) !important;
+        }
+
+        .glass-input::placeholder { color: var(--text-dim); }
+
+        /* Sidebar/Header Styling */
+        .app-header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-glass);
+            margin-bottom: 30px;
+        }
+
+        /* Table Styling */
+        .table { color: var(--text-main); }
+        .table thead th {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-glass);
+            color: var(--text-dim);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .table td{
+            background:#1a2442;
+            color:#ffffff;
+            border-bottom:1px solid rgba(255,255,255,.08);
+        }
+
+        /* Buttons */
+        .btn-neon{
+            background: linear-gradient(135deg,#0050cc,#00b4ff);
+            color:#fff;
+            border:none;
+            border-radius:14px;
+            padding:14px 28px;
+            font-weight:700;
+            letter-spacing:.5px;
+            text-transform:uppercase;
+            position:relative;
+            overflow:hidden;
+            transition:.35s ease;
+            box-shadow:
+                0 10px 25px rgba(0,80,204,.35),
+                0 0 20px rgba(0,180,255,.15);
+        }
+
+        .btn-neon:hover{
+            transform:translateY(-3px);
+            color:#fff;
+            box-shadow:
+                0 15px 35px rgba(0,80,204,.45),
+                0 0 25px rgba(0,180,255,.35);
+        }
+
+        .btn-neon:active{
+            transform:scale(.97);
+        }
+
+        .btn-outline-glass{
+            background:rgba(255,255,255,.05);
+            border:1px solid rgba(255,255,255,.12);
+            color:#dbeafe;
+            border-radius:12px;
+            backdrop-filter:blur(10px);
+            transition:.3s ease;
+        }
+
+        .btn-outline-glass:hover{
+            background:rgba(0,180,255,.15);
+            border-color:#00b4ff;
+            color:#fff;
+            transform:translateY(-2px);
+            box-shadow:0 8px 20px rgba(0,180,255,.20);
+        }
+
+        /*=========================
+         PRODUCTS HEADER
+        ==========================*/
+        .products-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:22px;
+        }
+
+        .products-title{
+            display:flex;
+            align-items:center;
+            gap:16px;
+        }
+
+        .products-title h5{
+            margin:0;
+            font-size:26px;
+            font-weight:700;
+            color:#e8f2ff;
+        }
+
+        .products-icon{
+            width:52px;
+            height:52px;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            border-radius:16px;
+            color:#6db7ff;
+            font-size:22px;
+            background:rgba(255,255,255,.08);
+            border:1px solid rgba(255,255,255,.12);
+            backdrop-filter:blur(18px);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.10),
+                0 10px 25px rgba(0,0,0,.35);
+            transition:.35s;
+        }
+
+        .products-icon:hover{
+            transform:rotate(8deg) scale(1.08);
+            box-shadow:
+                0 0 25px rgba(0,180,255,.35),
+                0 15px 30px rgba(0,0,0,.4);
+        }
+
+        /*=========================
+         GLASS BUTTON
+        ==========================*/
+        .glass-add-btn{
+            position:relative;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:12px 22px;
+            border:none;
+            border-radius:16px;
+            background:rgba(255,255,255,.08);
+            backdrop-filter:blur(18px);
+            color:#fff;
+            font-weight:600;
+            overflow:hidden;
+            transition:.35s;
+            border:1px solid rgba(255,255,255,.12);
+            box-shadow:
+                0 8px 25px rgba(0,0,0,.30);
+        }
+
+        .glass-add-btn::before{
+            content:"";
+            position:absolute;
+            left:-120%;
+            top:0;
+            width:60%;
+            height:100%;
+            background:linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,.35),
+                transparent
+            );
+            transform:skewX(-20deg);
+            transition:.8s;
+        }
+
+        .glass-add-btn:hover::before{
+            left:170%;
+        }
+
+        .glass-add-btn:hover{
+            transform:translateY(-4px);
+            color:#fff;
+            background:rgba(0,180,255,.18);
+            border-color:#00b4ff;
+            box-shadow:
+                0 0 20px rgba(0,180,255,.25),
+                0 12px 30px rgba(0,0,0,.35);
+        }
+
+        .glass-add-btn i{
+            font-size:18px;
+            transition:.3s;
+        }
+
+        .glass-add-btn:hover i{
+            transform:rotate(90deg);
+        }
+
+        /* Summary Cards */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--border-glass);
+        }
+
+        .stat-label { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: var(--neon-blue); }
+
+        /* Payment Tabs */
+        .nav-pills .nav-link {
+            color: var(--text-dim);
+            background: rgba(255,255,255,0.05);
+            margin-right: 8px;
+            border: 1px solid var(--border-glass);
+        }
+
+        /* PAYMENT BUTTONS */
+        .nav-pills{
+            gap:10px;
+        }
+
+        .nav-pills .nav-link{
+            color:#fff;
+            border:none;
+            border-radius:12px;
+            font-weight:600;
+            padding:10px 20px;
+            transition:.3s;
+        }
+
+        /* CASH */
+        .nav-pills .nav-item:nth-child(1) .nav-link{
+            background:linear-gradient(135deg,#16a34a,#22c55e);
+        }
+
+        /* UPI */
+        .nav-pills .nav-item:nth-child(2) .nav-link{
+            background:linear-gradient(135deg,#7c3aed,#a855f7);
+        }
+
+        /* CARD */
+        .nav-pills .nav-item:nth-child(3) .nav-link{
+            background:linear-gradient(135deg,#2563eb,#38bdf8);
+        }
+
+        /* BANK */
+        .nav-pills .nav-item:nth-child(4) .nav-link{
+            background:linear-gradient(135deg,#ea580c,#fb923c);
+        }
+
+        .nav-pills .nav-link:hover{
+            transform:translateY(-3px);
+            color:#fff;
+        }
+
+        .nav-pills .nav-link.active{
+            transform:scale(1.05);
+            box-shadow:0 0 18px rgba(255,255,255,.25);
+        }
+
+        .generate-btn{
+            background:linear-gradient(135deg,#0050cc,#00b4ff);
+        }
+
+        /* Print Button */
+        .print-btn{
+            background:linear-gradient(135deg,#8b5cf6,#c084fc);
+            border:none;
+            color:#fff;
+        }
+
+        /* PDF Button */
+        .pdf-btn{
+            background:linear-gradient(135deg,#ef4444,#f87171);
+            border:none;
+            color:#fff;
+        }
+
+        /* CSV Button */
+        .csv-btn{
+            background:linear-gradient(135deg,#10b981,#34d399);
+            border:none;
+            color:#fff;
+        }
+
+        /* Hover Animation */
+        .print-btn:hover,
+        .pdf-btn:hover,
+        .csv-btn:hover{
+            transform:translateY(-2px);
+            color:#fff;
+            filter:brightness(1.1);
+        }
+
+        /* Floating Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 10px 25px rgba(0, 180, 255, 0.5);
+            cursor: pointer;
+            z-index: 1000;
+            transition: 0.3s;
+        }
+
+        .fab:hover { transform: scale(1.1) rotate(90deg); }
+
+        /* GST Status colors */
+        .gst-valid { color: #00ff88; font-size: 0.8rem; }
+        .gst-invalid { color: #ff4d4d; font-size: 0.8rem; }
+
+        /* Modal Invoice Preview Styling - UPDATED */
+        #invoicePreviewContent {
+            background: #ffffff;
+            color: #1a1a1a;
+            padding: 50px;
+            font-family: 'Inter', sans-serif;
+            width: 210mm; /* A4 width */
+            margin: auto;
+            min-height: 297mm;
+        }
+
+        .inv-header { 
+            border-bottom: 3px solid #0050cc; 
+            padding-bottom: 30px; 
+            margin-bottom: 30px;
+        }
+
+        .inv-company-logo {
+            max-height: 70px;
+            margin-bottom: 15px;
+        }
+
+        .inv-company-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0050cc;
+            margin: 0;
+        }
+
+        .inv-section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 1px;
+            margin: 25px 0 10px 0;
+            font-weight: 700;
+        }
+
+        .inv-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+
+        .inv-table thead {
+            background: #f5f5f5;
+            border-top: 2px solid #0050cc;
+            border-bottom: 2px solid #0050cc;
+        }
+
+        .inv-table th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 700;
+            color: #0050cc;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .inv-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 13px;
+        }
+
+        .inv-table tbody tr:last-child td {
+            border-bottom: 2px solid #0050cc;
+        }
+
+        .inv-amount {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .inv-row-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 30px 0;
+        }
+
+        .inv-box {
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 3px solid #0050cc;
+            border-radius: 4px;
+        }
+
+        .inv-box-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 1px;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+
+        .inv-box-content {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .inv-box-name {
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .inv-totals {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        .inv-totals-right {
+            text-align: right;
+        }
+
+        .inv-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 13px;
+        }
+
+        .inv-total-row.total-label {
+            font-weight: 700;
+            color: #0050cc;
+            font-size: 14px;
+            border-bottom: none;
+            padding: 15px 0 8px 0;
+        }
+
+        .inv-total-row.grand-total {
+            background: #0050cc;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .inv-total-row.grand-total span:first-child {
+            font-size: 13px;
+        }
+
+        .inv-footer {
+            margin-top: 50px;
+            border-top: 3px solid #0050cc;
+            padding-top: 25px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+        }
+
+        .inv-signature-box {
+            border-top: 2px solid #333;
+            padding-top: 15px;
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .inv-qr-box {
+            text-align: center;
+        }
+
+        .inv-qr-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #qrcode {
+            display: inline-block !important;
+        }
+
+        #qrcode img {
+            display: inline-block !important;
+            max-width: 130px;
+        }
+
+        .inv-notes-section {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #invoiceModal, #invoiceModal * { visibility: visible; }
+            #invoiceModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+            .btn-close, .modal-header, .modal-footer { display: none !important; }
+        }
+
+        /* Logo Preview */
+        #logo-preview {
+            max-width: 150px;
+            max-height: 80px;
+            border-radius: 8px;
+            display: none;
+            margin-top: 10px;
+        }
+        /* ===============================
+   Back to Dashboard Button
+================================ */
+
+.back-dashboard-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+
+    color:#fff;
+
+    padding:12px 18px;
+
+    border-radius:14px;
+
+    font-weight:600;
+
+    transition:.35s;
+
+    backdrop-filter:blur(12px);
+
+    white-space:nowrap;
+}
+
+.back-dashboard-btn i{
+    font-size:20px;
+    color:#00b4ff;
+}
+
+.back-dashboard-btn:hover{
+
+    background:linear-gradient(135deg,#0050cc,#00b4ff);
+
+    color:#fff;
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 25px rgba(0,180,255,.35);
+
+}
+
+.back-dashboard-btn:hover i{
+    color:#fff;
+}
+.header-logo{
+    width:58px;
+    height:58px;
+    object-fit:contain;
+
+    border-radius:14px;
+
+    background:linear-gradient(135deg,#0050cc,#00b4ff);
+
+    padding:10px;
+
+    box-shadow:
+        0 0 18px rgba(0,180,255,.35),
+        0 8px 20px rgba(0,0,0,.35);
+
+    transition:.35s;
+}
+
+.header-logo:hover{
+    transform:scale(1.08) rotate(-5deg);
+}
+    </style>
+</head>
+<body>
+
+   <header class="app-header">
+    <div class="container">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <!-- Left Side -->
+            <div class="d-flex align-items-center gap-4">
+
+                <!-- Back Button -->
+                <button class="back-dashboard-btn"
+                        onclick="window.location.href='dashboard.html'">
+
+                    <i class="bi bi-arrow-left-circle-fill"></i>
+                    <span>Back to Dashboard</span>
+
+                </button>
+
+                <!-- Logo -->
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+    <img src="assets/logoo (2).png"
+         alt="InvoiceHub Logo"
+         class="header-logo">
+</div>
+
+                    <div>
+                        <h1 class="h3 mb-0 brand-font">
+                            INVOICE HUB
+                        </h1>
+
+                        <span class="text-dim small">
+                            THE FUTURE OF DIGITAL BILLING
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side -->
+            <div class="text-end">
+                <div id="live-clock" class="fw-bold"></div>
+                <div class="text-dim small">
+                    Dashboard v4.0
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</header>
+
+    <div class="container pb-5">
+        <div class="row">
+            <!-- LEFT PANEL: FORMS -->
+            <div class="col-lg-8">
+                
+                <!-- 1. Company Information -->
+                <div class="glass-card">
+                    <h5 class="brand-font mb-4"><i class="bi bi-building me-2 text-primary"></i>Company Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-dim small">Company Logo</label>
+                            <input type="file" id="comp-logo" class="form-control glass-input" accept="image/*">
+                            <img id="logo-preview" src="" alt="Logo Preview">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dim small">Company Name</label>
+                            <input type="text" id="comp-name" class="form-control glass-input" placeholder="e.g. Cyberdyne Systems">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dim small">GST Number</label>
+                            <input type="text" id="comp-gst" class="form-control glass-input" placeholder="22AAAAA0000A1Z5">
+                            <div id="gst-val-msg"></div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-dim small">Phone</label>
+                            <input type="text" id="comp-phone" class="form-control glass-input" placeholder="+91">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-dim small">Email</label>
+                            <input type="email" id="comp-email" class="form-control glass-input" placeholder="billing@nova.com">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label text-dim small">Website</label>
+                            <input type="text" id="comp-web" class="form-control glass-input" placeholder="www.company.com">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-dim small">Address</label>
+                            <textarea id="comp-addr" class="form-control glass-input" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Customer Information -->
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="brand-font mb-0"><i class="bi bi-person-badge me-2 text-primary"></i>Customer Information</h5>
+                        <span class="badge bg-primary rounded-pill small" id="cust-id-display">CUST-001</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-dim small">Customer Name</label>
+                            <input type="text" id="cust-name" class="form-control glass-input">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dim small">Phone</label>
+                            <input type="text" id="cust-phone" class="form-control glass-input">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dim small">Email</label>
+                            <input type="email" id="cust-email" class="form-control glass-input">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dim small">GST Number</label>
+                            <input type="text" id="cust-gst" class="form-control glass-input">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-dim small">Address</label>
+                            <textarea id="cust-addr" class="form-control glass-input" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Invoice Information -->
+                <div class="glass-card">
+                    <h5 class="brand-font mb-4"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Invoice Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label text-dim small">Invoice #</label>
+                            <input type="text" id="inv-number" class="form-control glass-input" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-dim small">Invoice Date</label>
+                            <input type="date" id="inv-date" class="form-control glass-input">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-dim small">Due Date</label>
+                            <input type="date" id="inv-due" class="form-control glass-input">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-dim small">Status</label>
+                            <select id="inv-status" class="form-select glass-input">
+                                <option value="Paid">Paid</option>
+                                <option value="Unpaid">Unpaid</option>
+                                <option value="Draft">Draft</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-dim small">GST Type</label>
+                            <select id="gst-type" class="form-select glass-input" onchange="calculateTotals()">
+                                <option value="cgst_sgst">CGST + SGST (Within State)</option>
+                                <option value="igst">IGST (Inter State)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Product Table -->
+                <div class="glass-card products-card">
+                    <div class="products-header">
+                        <div class="products-title">
+                            <div class="products-icon">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                            </div>
+                            <h5 class="brand-font mb-0">Products & Services</h5>
+                        </div>
+                        <button class="glass-add-btn" onclick="addRow()">
+                            <i class="bi bi-plus-lg"></i>
+                            Add Row
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" id="prod-table">
+                            <thead>
+                                <tr>
+                                    <th width="50">#</th>
+                                    <th>Product Description</th>
+                                    <th width="100">HSN</th>
+                                    <th width="80">Qty</th>
+                                    <th width="80">Unit</th>
+                                    <th width="120">Price</th>
+                                    <th width="80">Disc%</th>
+                                    <th width="100">GST%</th>
+                                    <th width="130">Amount</th>
+                                    <th width="50"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="prod-tbody">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 5. Payment & Notes -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="glass-card h-100">
+                            <h6 class="brand-font mb-3">Payment Method</h6>
+                            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-cash" onclick="setPayMethod('Cash')">Cash</button></li>
+                                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-upi" onclick="setPayMethod('UPI')">UPI</button></li>
+                                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-card" onclick="setPayMethod('Card')">Card</button></li>
+                                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bank" onclick="setPayMethod('Bank')">Bank</button></li>
+                            </ul>
+                            <div class="tab-content" id="pills-tabContent">
+                                <div class="tab-pane fade show active" id="tab-cash"><p class="text-dim small">Physical cash transaction.</p></div>
+                                <div class="tab-pane fade" id="tab-upi">
+                                    <input type="text" id="pay-upi-id" class="form-control glass-input mb-2" placeholder="UPI ID / Number">
+                                </div>
+                                <div class="tab-pane fade" id="tab-card">
+                                    <input type="text" id="pay-card-last4" class="form-control glass-input mb-2" placeholder="Last 4 Digits">
+                                </div>
+                                <div class="tab-pane fade" id="tab-bank">
+                                    <input type="text" id="bank-holder" class="form-control glass-input mb-2" placeholder="BANK ACCOUNT HOLDER NAME">
+                                    <input type="text" id="bank-account" class="form-control glass-input mb-2" placeholder="Bank A/C NUMBER">
+                                    <input type="text" id="bank-ifsc" class="form-control glass-input mb-2" placeholder="IFSC CODE">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="glass-card h-100">
+                            <h6 class="brand-font mb-3">Notes & Terms</h6>
+                            <textarea id="inv-notes" class="form-control glass-input mb-2" rows="2" placeholder="Additional notes..."></textarea>
+                            <textarea id="inv-terms" class="form-control glass-input" rows="2" placeholder="Standard terms..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: SUMMARY -->
+            <div class="col-lg-4">
+                <div class="sticky-top" style="top: 100px;">
+                    <!-- Main Totals -->
+                    <div class="glass-card text-center py-4">
+                        <div class="stat-label">GRAND TOTAL</div>
+                        <div class="display-5 fw-bold text-white mb-2" id="total-grand">₹ 0.00</div>
+                        <div class="stat-label">GST: <span class="text-info" id="total-gst-top">₹ 0.00</span></div>
+                    </div>
+
+                    <!-- Breakdown -->
+                    <div class="glass-card">
+                        <h6 class="brand-font mb-3">Calculation Breakdown</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-dim">Gross Amount:</span>
+                            <span id="break-gross">₹ 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-dim">Total Discount:</span>
+                            <span class="text-danger" id="break-disc">- ₹ 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 border-top border-secondary pt-2">
+                            <span class="text-dim">Taxable Amount:</span>
+                            <span id="break-taxable">₹ 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-dim">CGST:</span>
+                            <span id="break-cgst">₹ 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-dim">SGST:</span>
+                            <span id="break-sgst">₹ 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-dim">IGST:</span>
+                            <span id="break-igst">₹ 0.00</span>
+                        </div> 
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Items</div>
+                                <div class="stat-value" id="total-items">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <div class="stat-label">Avg. GST</div>
+                                <div class="stat-value" id="avg-gst">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <button class="btn btn-neon generate-btn w-100 mb-3 py-3" onclick="generateInvoice()">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        GENERATE INVOICE
+                    </button>
+
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <button class="btn print-btn w-100 py-2" onclick="window.print()">
+                                <i class="bi bi-printer-fill fs-5"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn pdf-btn w-100 py-2" onclick="exportPDF()">
+                                <i class="bi bi-file-earmark-pdf-fill fs-5"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn csv-btn w-100 py-2" onclick="exportCSV()">
+                                <i class="bi bi-file-earmark-excel-fill fs-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button -->
+    <div class="fab" onclick="addRow()" title="Add Row">
+        <i class="bi bi-plus-lg"></i>
+    </div>
+
+    <!-- INVOICE PREVIEW MODAL -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content border-0">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title brand-font">Invoice Preview</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" style="max-height: 80vh; overflow-y: auto;">
+                    <div id="invoicePreviewContent">
+                        <!-- Content Generated by JS -->
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" onclick="exportPDF()">Download PDF</button>
+                    <button class="btn btn-dark" onclick="window.print()">Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /**
+         * Smart Billing System - COMPLETE VERSION
+         * Fixed bugs and improved invoice format
+         */
+
+        // State Management
+        let invoiceData = {
+            payMethod: 'Cash',
+            rows: [],
+            logoData: ''
+        };
+
+        const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initInputs();
+            loadLocal();
+            startClock();
+            if(document.querySelectorAll("#prod-tbody tr").length === 0){
+                addRow();
+            }
+            calculateTotals();
+        });
+
+        function initInputs() {
+            // Generate IDs if missing
+            if(!getVal('inv-number')) setVal('inv-number', 'INV-' + Date.now().toString().slice(-6));
+            if(!getVal('inv-date')) setVal('inv-date', new Date().toISOString().split('T')[0]);
+            
+            // Watchers
+            ['comp-gst', 'cust-gst'].forEach(id => {
+                document.getElementById(id).addEventListener('input', e => validateGST(e.target));
+            });
+
+            // Watch for any input change to auto-save
+            document.querySelectorAll('input, textarea, select').forEach(el => {
+                el.addEventListener('input', () => {
+                    saveLocal();
+                    if(el.closest('#prod-tbody')) calculateTotals();
+                });
+            });
+
+            // Logo handling
+            document.getElementById('comp-logo').addEventListener('change', handleLogo);
+        }
+
+        function startClock() {
+            setInterval(() => {
+                document.getElementById('live-clock').innerText = new Date().toLocaleTimeString();
+            }, 1000);
+        }
+
+        function handleLogo(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (f) => {
+                    invoiceData.logoData = f.target.result;
+                    const prev = document.getElementById('logo-preview');
+                    prev.src = f.target.result;
+                    prev.style.display = 'block';
+                    saveLocal();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function setPayMethod(val) {
+            invoiceData.payMethod = val;
+            saveLocal();
+        }
+
+        // Row Management
+        function addRow() {
+            const tbody = document.getElementById('prod-tbody');
+            const rowId = 'row-' + Date.now();
+            const tr = document.createElement('tr');
+            tr.id = rowId;
+            tr.innerHTML = `
+                <td class="row-index"></td>
+                <td><input type="text" class="form-control glass-input p-1 item-desc" placeholder="Product Name"></td>
+                <td><input type="text" class="form-control glass-input p-1 item-hsn" placeholder="HSN Code"></td>
+                <td><input type="number" class="form-control glass-input p-1 item-qty" value="1" min="1"></td>
+                <td>
+                    <select class="form-select glass-input p-1 item-unit">
+                        <option selected>Pcs</option>
+                        <option>Piece</option>
+                        <option>Kg</option>
+                        <option>Gram</option>
+                        <option>Litre</option>
+                        <option>ML</option>
+                        <option>Meter</option>
+                        <option>Feet</option>
+                        <option>Box</option>
+                        <option>Pack</option>
+                        <option>Bottle</option>
+                        <option>Dozen</option>
+                        <option>Pair</option>
+                        <option>Set</option>
+                        <option>Unit</option>
+                    </select>
+                </td>
+                <td><input type="number" class="form-control glass-input p-1 item-price" value="0" placeholder="0.00"></td>
+                <td><input type="number" class="form-control glass-input p-1 item-disc" value="0" placeholder="0"></td>
+                <td>
+                    <select class="form-select glass-input p-1 item-gst">
+                        <option value="0">0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18" selected>18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </td>
+                <td class="fw-bold item-amt">₹ 0.00</td>
+                <td><button class="btn btn-link text-danger p-0" onclick="removeRow('${rowId}')"><i class="bi bi-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+            updateIndices();
+            calculateTotals();
+            tr.querySelectorAll('input, select').forEach(el => {
+                el.addEventListener('input', calculateTotals);
+                el.addEventListener('change', calculateTotals);
+            });
+        }
+
+        function removeRow(id) {
+            const row = document.getElementById(id);
+            if(row) row.remove();
+            updateIndices();
+            calculateTotals();
+        }
+
+        function updateIndices() {
+            document.querySelectorAll('.row-index').forEach((el, i) => el.innerText = i + 1);
+        }
+
+        // Calculations Logic
+        function calculateTotals() {
+            let gross = 0, totalDisc = 0, taxableTotal = 0, totalGST = 0, itemCount = 0, gstSum = 0;
+
+            document.querySelectorAll('#prod-tbody tr').forEach(tr => {
+                const qty = parseFloat(tr.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(tr.querySelector('.item-price').value) || 0;
+                const discPerc = parseFloat(tr.querySelector('.item-disc').value) || 0;
+                const gstPerc = parseFloat(tr.querySelector('.item-gst').value) || 0;
+
+                const base = qty * price;
+                const discAmt = base * (discPerc / 100);
+                const taxable = base - discAmt;
+                const gstAmt = taxable * (gstPerc / 100);
+                const rowTotal = taxable + gstAmt;
+
+                tr.querySelector('.item-amt').innerText = '₹ ' + rowTotal.toFixed(2);
+
+                gross += base;
+                totalDisc += discAmt;
+                taxableTotal += taxable;
+                totalGST += gstAmt;
+
+                // Count only valid product rows
+                if (qty > 0 && price > 0) {
+                    itemCount += qty;
+                    gstSum += gstPerc;
+                }
+            });
+
+            const grand = taxableTotal + totalGST;
+
+            // Count only rows that actually contain a product
+            const validRows = [...document.querySelectorAll('#prod-tbody tr')].filter(tr => {
+                const qty = Number(tr.querySelector('.item-qty').value || 0);
+                const price = Number(tr.querySelector('.item-price').value || 0);
+                return qty > 0 && price > 0;
+            }).length;
+
+            const avgGst = validRows > 0 ? (gstSum / validRows).toFixed(1) : "0.0";
+
+            // Update UI
+            setHtml('total-grand', '₹ ' + grand.toFixed(2));
+            setHtml('total-gst-top', '₹ ' + totalGST.toFixed(2));
+            setHtml('break-gross', '₹ ' + gross.toFixed(2));
+            setHtml('break-disc', '- ₹ ' + totalDisc.toFixed(2));
+            setHtml('break-taxable', '₹ ' + taxableTotal.toFixed(2));
+            setHtml('total-items', itemCount);
+            setHtml('avg-gst', avgGst + "%");
+
+            const gstType = getVal('gst-type');
+            const cgstRow = document.getElementById("break-cgst").parentElement;
+            const sgstRow = document.getElementById("break-sgst").parentElement;
+            const igstRow = document.getElementById("break-igst").parentElement;
+
+            if (gstType === "igst") {
+                cgstRow.style.display = "none";
+                sgstRow.style.display = "none";
+                igstRow.style.display = "flex";
+                setHtml("break-igst","₹ " + totalGST.toFixed(2));
+            } else {
+                cgstRow.style.display = "flex";
+                sgstRow.style.display = "flex";
+                igstRow.style.display = "none";
+                setHtml("break-cgst","₹ " + (totalGST/2).toFixed(2));
+                setHtml("break-sgst","₹ " + (totalGST/2).toFixed(2));
+            }
+        }
+
+        // Validation
+        function validateGST(el) {
+            const val = el.value.trim().toUpperCase();
+            const msg = el.nextElementSibling;
+            if(!val) { msg.innerHTML = ''; return; }
+            if(GST_REGEX.test(val)) {
+                msg.innerHTML = '<span class="gst-valid">✅ Valid GST Format</span>';
+            } else {
+                msg.innerHTML = '<span class="gst-invalid">❌ Invalid GST Format</span>';
+            }
+        }
+
+        /**
+         * IMPROVED: generateInvoice() with professional format
+         */
+        function generateInvoice() {
+            calculateTotals(); 
+            const preview = document.getElementById('invoicePreviewContent');
+            
+            // Build Rows HTML
+            let rowsHtml = '';
+            document.querySelectorAll('#prod-tbody tr').forEach((tr, i) => {
+                const desc = tr.querySelector('.item-desc').value;
+                const hsn = tr.querySelector('.item-hsn').value;
+                const qty = tr.querySelector('.item-qty').value;
+                const unit = tr.querySelector('.item-unit').value;
+                const price = tr.querySelector('.item-price').value;
+                const disc = tr.querySelector('.item-disc').value;
+                const gst = tr.querySelector('.item-gst').value;
+                const amt = tr.querySelector('.item-amt').innerText;
+
+                if(qty && price) {
+                    rowsHtml += `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td>${desc}</td>
+                            <td>${hsn}</td>
+                            <td>${qty} ${unit}</td>
+                            <td class="inv-amount">₹${price}</td>
+                            <td class="inv-amount">${disc}%</td>
+                            <td class="inv-amount">${gst}%</td>
+                            <td class="inv-amount">${amt}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            // Get totals
+            const grandTotal = getHtml('total-grand');
+            const totalGST = getHtml('total-gst-top');
+            const taxableAmount = getHtml('break-taxable');
+            const gstType = getVal('gst-type');
+
+            preview.innerHTML = `
+                <div class="inv-header">
+                    <div>
+                        ${invoiceData.logoData ? `<img src="${invoiceData.logoData}" class="inv-company-logo">` : ''}
+                        <p class="inv-company-name">${getVal('comp-name') || 'COMPANY NAME'}</p>
+                        <div style="font-size: 13px; color: #666; line-height: 1.6;">
+                            ${getVal('comp-addr')}
+                        </div>
+                        <div style="font-size: 13px; color: #666; margin-top: 10px;">
+                            <strong>GST:</strong> ${getVal('comp-gst')}<br>
+                            <strong>Phone:</strong> ${getVal('comp-phone')}<br>
+                            <strong>Email:</strong> ${getVal('comp-email')}<br>
+                            <strong>Website:</strong> ${getVal('comp-web')}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <h1 style="margin: 0; color: #0050cc; font-size: 42px;">INVOICE</h1>
+                        <div style="margin-top: 20px; font-size: 13px;">
+                            <div style="margin-bottom: 8px;"><strong>Invoice No.:</strong> <span style="font-size: 16px; color: #0050cc; font-weight: 700;">${getVal('inv-number')}</span></div>
+                            <div style="margin-bottom: 8px;"><strong>Date:</strong> ${getVal('inv-date')}</div>
+                            <div style="margin-bottom: 8px;"><strong>Due Date:</strong> ${getVal('inv-due')}</div>
+                            <div style="margin-top: 15px;">
+                                <span style="display: inline-block; padding: 6px 12px; background: ${getVal('inv-status') === 'Paid' ? '#10b981' : '#f59e0b'}; color: white; border-radius: 4px; font-weight: 700; font-size: 12px; text-transform: uppercase;">${getVal('inv-status')}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inv-row-grid" style="margin: 35px 0;">
+                    <div class="inv-box">
+                        <p class="inv-box-title">Bill To</p>
+                        <div class="inv-box-content">
+                            <div class="inv-box-name">${getVal('cust-name') || 'CUSTOMER'}</div>
+                            <div>${getVal('cust-addr')}</div>
+                            <div style="margin-top: 10px;">
+                                <strong>Phone:</strong> ${getVal('cust-phone')}<br>
+                                <strong>Email:</strong> ${getVal('cust-email')}<br>
+                                <strong>GST:</strong> ${getVal('cust-gst')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inv-box">
+                        <p class="inv-box-title">Payment Details</p>
+                        <div class="inv-box-content">
+                            <strong>Method:</strong> ${invoiceData.payMethod}<br>
+                            ${invoiceData.payMethod === 'UPI' ? `<strong>UPI ID:</strong> ${getVal('pay-upi-id')}<br>` : ''}
+                            ${invoiceData.payMethod === 'Card' ? `<strong>Last 4 Digits:</strong> ${getVal('pay-card-last4')}<br>` : ''}
+                            ${invoiceData.payMethod === 'Bank' ? `<strong>Account Holder:</strong> ${getVal('bank-holder')}<br><strong>Account No.:</strong> ${getVal('bank-account')}<br><strong>IFSC:</strong> ${getVal('bank-ifsc')}<br>` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 30%;">Description</th>
+                            <th style="width: 10%;">HSN</th>
+                            <th style="width: 15%;">Qty</th>
+                            <th style="width: 12%;">Price</th>
+                            <th style="width: 8%;">Disc</th>
+                            <th style="width: 10%;">GST</th>
+                            <th style="width: 15%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+
+                <div class="inv-totals">
+                    <div>
+                        ${getVal('inv-notes') ? `
+                            <div class="inv-notes-section">
+                                <p class="inv-section-title">Notes</p>
+                                <p style="font-size: 13px; margin: 0; line-height: 1.6;">${getVal('inv-notes')}</p>
+                            </div>
+                        ` : ''}
+                        ${getVal('inv-terms') ? `
+                            <div class="inv-notes-section" style="margin-top: 15px;">
+                                <p class="inv-section-title">Terms & Conditions</p>
+                                <p style="font-size: 13px; margin: 0; line-height: 1.6; white-space: pre-line;">${getVal('inv-terms')}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="inv-totals-right">
+                        <div class="inv-total-row">
+                            <span>Subtotal:</span>
+                            <span>${getHtml('break-gross')}</span>
+                        </div>
+                        <div class="inv-total-row">
+                            <span>Discount:</span>
+                            <span>${getHtml('break-disc')}</span>
+                        </div>
+                        <div class="inv-total-row">
+                            <span>Taxable:</span>
+                            <span>${taxableAmount}</span>
+                        </div>
+                        ${gstType === 'igst' ? `
+                            <div class="inv-total-row">
+                                <span>IGST:</span>
+                                <span>${totalGST}</span>
+                            </div>
+                        ` : `
+                            <div class="inv-total-row">
+                                <span>CGST:</span>
+                                <span>${getHtml('break-cgst')}</span>
+                            </div>
+                            <div class="inv-total-row">
+                                <span>SGST:</span>
+                                <span>${getHtml('break-sgst')}</span>
+                            </div>
+                        `}
+                        <div class="inv-total-row grand-total">
+                            <span>GRAND TOTAL</span>
+                            <span>${grandTotal}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inv-footer">
+                    <div>
+                        <p style="font-size: 13px; color: #666; margin: 0 0 5px 0;"><strong>Company Contact Information</strong></p>
+                        <p style="font-size: 12px; color: #666; margin: 0;">
+                            Website: ${getVal('comp-web')}<br>
+                            Email: ${getVal('comp-email')}<br>
+                            Phone: ${getVal('comp-phone')}
+                        </p>
+                        <div class="inv-signature-box">
+                            Authorized Signature
+                        </div>
+                    </div>
+                    <div class="inv-qr-box">
+                        <div class="inv-qr-label">Scan to Verify</div>
+                        <div id="qrcode" style="display: inline-block;"></div>
+                    </div>
+                </div>
+            `;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById("invoiceModal"));
+            modal.show();
+
+            // Generate QR Code
+            generateQRCode();
+        }
+
+        /**
+         * FIXED QR CODE GENERATION
+         */
+        function generateQRCode() {
+            setTimeout(() => {
+                try {
+                    if (typeof QRCode === 'undefined') {
+                        console.error('QRCode library not loaded');
+                        return;
+                    }
+
+                    const qrContainer = document.getElementById('qrcode');
+                    if (!qrContainer) {
+                        console.error('QR code container not found');
+                        return;
+                    }
+
+                    qrContainer.innerHTML = '';
+
+                    // Minimal QR data
+                    const qrData = getVal('inv-number');
+
+                    new QRCode(qrContainer, {
+                        text: qrData,
+                        width: 130,
+                        height: 130,
+                        correctLevel: QRCode.CorrectLevel.M,
+                        useSVG: false
+                    });
+
+                    console.log('✅ QR Code generated: ' + qrData);
+                } catch (error) {
+                    console.error('❌ QR Code error:', error.message);
+                }
+            }, 500);
+        }
+
+        async function exportPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const element = document.getElementById('invoicePreviewContent');
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
+                
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`Invoice-${getVal('inv-number')}.pdf`);
+            } catch(e) {
+                alert('Error exporting PDF: ' + e.message);
+            }
+        }
+
+        function exportCSV() {
+            let csv = "S.No,Description,HSN,Qty,Unit,Price,Discount%,GST%,Amount\n";
+            document.querySelectorAll('#prod-tbody tr').forEach((tr, i) => {
+                const desc = tr.querySelector('.item-desc').value;
+                const hsn = tr.querySelector('.item-hsn').value;
+                const qty = tr.querySelector('.item-qty').value;
+                const unit = tr.querySelector('.item-unit').value;
+                const price = tr.querySelector('.item-price').value;
+                const disc = tr.querySelector('.item-disc').value;
+                const gst = tr.querySelector('.item-gst').value;
+                const amt = tr.querySelector('.item-amt').innerText.replace('₹ ', '');
+                
+                if(qty && price) {
+                    csv += `${i+1},"${desc}","${hsn}",${qty},"${unit}",${price},${disc},${gst},"${amt}"\n`;
+                }
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Invoice-${getVal('inv-number')}.csv`;
+            link.click();
+        }
+
+        // Persistent Storage
+        function saveLocal() {
+            const data = {
+                company: {
+                    name: getVal('comp-name'),
+                    gst: getVal('comp-gst'),
+                    phone: getVal('comp-phone'),
+                    email: getVal('comp-email'),
+                    web: getVal('comp-web'),
+                    addr: getVal('comp-addr'),
+                    logo: invoiceData.logoData
+                },
+                customer: {
+                    name: getVal('cust-name'),
+                    phone: getVal('cust-phone'),
+                    email: getVal('cust-email'),
+                    gst: getVal('cust-gst'),
+                    addr: getVal('cust-addr')
+                },
+                invoice: {
+                    num: getVal('inv-number'),
+                    date: getVal('inv-date'),
+                    due: getVal('inv-due'),
+                    status: getVal('inv-status'),
+                    gstType: getVal('gst-type'),
+                },
+                rows: [],
+                notes: getVal('inv-notes'),
+                terms: getVal('inv-terms'),
+                payMethod: invoiceData.payMethod
+            };
+
+            document.querySelectorAll('#prod-tbody tr').forEach(tr => {
+                data.rows.push({
+                    desc: tr.querySelector('.item-desc').value,
+                    hsn: tr.querySelector('.item-hsn').value,
+                    qty: tr.querySelector('.item-qty').value,
+                    unit: tr.querySelector('.item-unit').value,
+                    price: tr.querySelector('.item-price').value,
+                    disc: tr.querySelector('.item-disc').value,
+                    gst: tr.querySelector('.item-gst').value
+                });
+            });
+
+            localStorage.setItem('nova_invoice_db', JSON.stringify(data));
+        }
+
+        function loadLocal() {
+            const raw = localStorage.getItem('nova_invoice_db');
+            if(!raw) return;
+            const data = JSON.parse(raw);
+
+            // Populate Company
+            setVal('comp-name', data.company.name);
+            setVal('comp-gst', data.company.gst);
+            setVal('comp-phone', data.company.phone);
+            setVal('comp-email', data.company.email);
+            setVal('comp-web', data.company.web);
+            setVal('comp-addr', data.company.addr);
+            if(data.company.logo) {
+                invoiceData.logoData = data.company.logo;
+                const prev = document.getElementById('logo-preview');
+                prev.src = data.company.logo;
+                prev.style.display = 'block';
+            }
+
+            // Customer
+            setVal('cust-name', data.customer.name);
+            setVal('cust-phone', data.customer.phone);
+            setVal('cust-email', data.customer.email);
+            setVal('cust-gst', data.customer.gst);
+            setVal('cust-addr', data.customer.addr);
+
+            // Invoice
+            setVal('inv-number', data.invoice.num);
+            setVal('inv-date', data.invoice.date);
+            setVal('inv-due', data.invoice.due);
+            setVal('inv-status', data.invoice.status);
+            setVal('gst-type', data.invoice.gstType || 'cgst_sgst');
+
+            // Rows
+            const tbody = document.getElementById('prod-tbody');
+            tbody.innerHTML = '';
+            data.rows.forEach(r => {
+                const rowId = 'row-' + Math.random();
+                const tr = document.createElement('tr');
+                tr.id = rowId;
+                tr.innerHTML = `
+                    <td class="row-index"></td>
+                    <td><input type="text" class="form-control glass-input p-1 item-desc" value="${r.desc}"></td>
+                    <td><input type="text" class="form-control glass-input p-1 item-hsn" value="${r.hsn}"></td>
+                    <td><input type="number" class="form-control glass-input p-1 item-qty" value="${r.qty}"></td>
+                    <td>
+                        <select class="form-select glass-input p-1 item-unit">
+                            <option ${r.unit=="Pcs"?"selected":""}>Pcs</option>
+                            <option ${r.unit=="Piece"?"selected":""}>Piece</option>
+                            <option ${r.unit=="Kg"?"selected":""}>Kg</option>
+                            <option ${r.unit=="Gram"?"selected":""}>Gram</option>
+                            <option ${r.unit=="Litre"?"selected":""}>Litre</option>
+                            <option ${r.unit=="ML"?"selected":""}>ML</option>
+                            <option ${r.unit=="Meter"?"selected":""}>Meter</option>
+                            <option ${r.unit=="Feet"?"selected":""}>Feet</option>
+                            <option ${r.unit=="Box"?"selected":""}>Box</option>
+                            <option ${r.unit=="Pack"?"selected":""}>Pack</option>
+                            <option ${r.unit=="Bottle"?"selected":""}>Bottle</option>
+                            <option ${r.unit=="Dozen"?"selected":""}>Dozen</option>
+                            <option ${r.unit=="Pair"?"selected":""}>Pair</option>
+                            <option ${r.unit=="Set"?"selected":""}>Set</option>
+                            <option ${r.unit=="Unit"?"selected":""}>Unit</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="form-control glass-input p-1 item-price" value="${r.price}"></td>
+                    <td><input type="number" class="form-control glass-input p-1 item-disc" value="${r.disc}"></td>
+                    <td>
+                        <select class="form-select glass-input p-1 item-gst">
+                            <option value="0" ${r.gst == 0 ? 'selected' : ''}>0%</option>
+                            <option value="5" ${r.gst == 5 ? 'selected' : ''}>5%</option>
+                            <option value="12" ${r.gst == 12 ? 'selected' : ''}>12%</option>
+                            <option value="18" ${r.gst == 18 ? 'selected' : ''}>18%</option>
+                            <option value="28" ${r.gst == 28 ? 'selected' : ''}>28%</option>
+                        </select>
+                    </td>
+                    <td class="fw-bold item-amt">₹ 0.00</td>
+                    <td><button class="btn btn-link text-danger p-0" onclick="removeRow('${rowId}')"><i class="bi bi-trash"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+                tr.querySelectorAll('input, select').forEach(el => {
+                    el.addEventListener('input', calculateTotals);
+                    el.addEventListener('change', calculateTotals);
+                }); 
+            });
+            
+            calculateTotals();
+            setVal('inv-notes', data.notes);
+            setVal('inv-terms', data.terms);
+            invoiceData.payMethod = data.payMethod;
+            updateIndices();
+        }
+
+        // Helpers
+        function getVal(id) { 
+            const el = document.getElementById(id);
+            return el ? el.value : ''; 
+        }
+        function setVal(id, val) { 
+            const el = document.getElementById(id);
+            if(el) el.value = val; 
+        }
+        function setHtml(id, val) { 
+            const el = document.getElementById(id);
+            if(el) el.innerText = val; 
+        }
+        function getHtml(id) { 
+            const el = document.getElementById(id);
+            return el ? el.innerText : ''; 
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Billing System - Product Cart Matrix</title>
+
+
+<style>
+/* ===== FUTURISTIC FINTECH CONFIGURATION ===== */
+:root {
+    --primary: #0A84FF;
+    --secondary: #4DA3FF;
+    --background: #07111F;
+    --surface: rgba(15, 27, 45, 0.7);
+    --text: #FFFFFF;
+    --text-muted: #94A3B8;
+    --accent-glow: rgba(0, 212, 255, 0.2);
+    --border-glass: rgba(77, 163, 255, 0.15);
+    
+    --success: #00E676;
+    --warning: #FFB300;
+    --danger: #FF3D00;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--background);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ===== MOVING GLOWING GRID BACKGROUND ===== */
+.bg-grid {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: 
+        linear-gradient(rgba(10, 132, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(10, 132, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 1;
+    animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+}
+
+#bgCanvas {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* ===== FULL SCREEN FIT GLASSMORPHISM CONTAINER ===== */
+.container {
+    width: 100vw;
+    height: 100vh;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 24px;
+    border: none;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+h2 {
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #FFF;
+    text-shadow: 0 0 15px rgba(10, 132, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.title-logo {
+    width: 32px;
+    height: 32px;
+    fill: none;
+    stroke: var(--secondary);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.6));
+}
+
+/* ===== FILTERS PANEL BAR ===== */
+.filters-bar {
+    background: rgba(15, 27, 45, 0.4);
+    border: 1px solid var(--border-glass);
+    padding: 14px 20px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.search-box {
+    flex: 1;
+    padding: 12px 18px;
+    background: rgba(7, 17, 31, 0.6);
+    border: 1px solid var(--border-glass);
+    border-radius: 10px;
+    outline: none;
+    font-size: 14px;
+    color: var(--text);
+    transition: all 0.3s ease;
+}
+
+.search-box:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 12px rgba(10, 132, 255, 0.3);
+}
+
+.search-box::placeholder {
+    color: #55657e;
+}
+
+.tabs-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tab {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.tab:hover {
+    color: #FFF;
+    background: rgba(77, 163, 255, 0.1);
+}
+
+.tab.active {
+    background: rgba(10, 132, 255, 0.2);
+    border-color: var(--primary);
+    color: #FFF;
+    box-shadow: 0 0 10px rgba(10, 132, 255, 0.2);
+}
+
+.btn-add {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(10, 132, 255, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 22px rgba(10, 132, 255, 0.6);
+}
+
+/* ===== MODAL ACTION BUTTONS ===== */
+.btn-cancel {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-glass);
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-save {
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 22px rgba(0, 230, 118, 0.6);
+}
+
+/* ===== DYNAMIC PRODUCT GRID ===== */
+.product-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.product-grid::-webkit-scrollbar {
+    width: 6px;
+}
+.product-grid::-webkit-scrollbar-track {
+    background: rgba(7, 17, 31, 0.2);
+}
+.product-grid::-webkit-scrollbar-thumb {
+    background: var(--border-glass);
+    border-radius: 3px;
+}
+
+/* ===== PRODUCT CARD MATRIX EXTENDED ===== */
+.product-card {
+    background: rgba(15, 27, 45, 0.5);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    padding: 22px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--secondary);
+    background: rgba(20, 35, 60, 0.7);
+    box-shadow: 0 12px 30px rgba(0, 212, 255, 0.18), inset 0 0 15px rgba(77, 163, 255, 0.1);
+}
+
+/* INTEGRATED IMAGE BANNER */
+.card-banner-img {
+    width: 100%;
+    height: 140px;
+    border-radius: 12px;
+    object-fit: cover;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #07111f;
+}
+
+.badge {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 5;
+}
+.badge.in { background: rgba(0, 230, 118, 0.85); color: #fff; box-shadow: 0 0 10px rgba(0, 230, 118, 0.4); }
+.badge.low { background: rgba(255, 179, 0, 0.85); color: #000; box-shadow: 0 0 10px rgba(255, 179, 0, 0.4); }
+.badge.out { background: rgba(255, 61, 0, 0.85); color: #fff; box-shadow: 0 0 10px rgba(255, 61, 0, 0.4); }
+
+.card-center {
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+.title-icon-flex {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.box-icon-wrap {
+    min-width: 36px;
+    height: 36px;
+    background: rgba(10, 132, 255, 0.1);
+    border: 1px solid rgba(10, 132, 255, 0.2);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.product-title {
+    color: #FFF;
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sku-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: monospace;
+    display: block;
+    padding-left: 46px;
+}
+
+.edit-hint {
+    font-size: 11px;
+    color: var(--secondary);
+    text-align: center;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.product-card:hover .edit-hint {
+    opacity: 1;
+}
+
+.card-footer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border-glass);
+    padding-top: 14px;
+    font-size: 15px;
+}
+.product-actions{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-top:18px;
+
+}
+
+.edit-btn{
+
+    flex:1;
+
+    padding:10px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#0A84FF;
+
+    color:#fff;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.edit-btn:hover{
+
+    background:#0070ff;
+
+}
+
+.delete-btn{
+
+    flex:1;
+
+    padding:10px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#ff3d00;
+
+    color:white;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.delete-btn:hover{
+
+    background:#d92c00;
+
+}
+
+.metric { display: flex; flex-direction: column; }
+.metric.center { text-align: center; }
+.metric.right { text-align: right; }
+
+.label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.val { font-weight: 700; color: #FFF; }
+.val.warn { color: var(--warning); }
+.val.danger { color: var(--danger); }
+
+/* ===== MODAL CONFIG ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(5, 11, 22, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 100;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #0F1B2D;
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 26px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(10, 132, 255, 0.1);
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.form-group {
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.form-control {
+    padding: 10px 14px;
+    background: rgba(7, 17, 31, 0.7);
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+    color: #FFF;
+    outline: none;
+    font-size: 14px;
+}
+.form-control:focus { border-color: var(--primary); }
+
+.file-upload-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 132, 255, 0.05);
+    border: 1px dashed var(--border-glass);
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+}
+.file-upload-wrapper:hover {
+    border-color: var(--secondary);
+    background: rgba(10, 132, 255, 0.1);
+}
+.file-upload-wrapper input[type="file"] {
+    position: absolute;
+    left: 0; top: 0; width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+.preview-thumbnail {
+    width: 50px; height: 35px; object-fit: cover; border-radius: 4px; display: none; margin-left: auto;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+.top-actions{
+    display:flex;
+    justify-content:flex-start;
+    margin-bottom:20px;
+}
+
+.btn-dashboard{
+    background:linear-gradient(135deg,#0A84FF,#00D4FF);
+    color:#fff;
+    border:none;
+    padding:10px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-dashboard:hover{
+    transform:translateY(-2px);
+    box-shadow:0 0 18px rgba(0,212,255,.4);
+}
+/* ===== BACK TO DASHBOARD BUTTON ===== */
+
+.top-bar{
+    position:fixed;
+    top:20px;
+    left:20px;
+    z-index:9999;
+}
+
+.back-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:12px 22px;
+
+    background:linear-gradient(135deg,#0A84FF,#00D4FF);
+    color:#fff;
+
+    border:none;
+    border-radius:12px;
+
+    font-size:15px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    box-shadow:0 10px 25px rgba(0,132,255,.35);
+    transition:all .3s ease;
+}
+
+.back-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 15px 35px rgba(0,212,255,.45);
+}
+
+.back-btn i{
+    font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">
+        <i class="bi bi-arrow-left"></i>
+        Back to Dashboard
+    </button>
+</div>
+<div class="bg-grid"></div>
+<canvas id="bgCanvas"></canvas>
+
+<div class="container">
+    <h2>
+        <svg class="title-logo" viewBox="0 0 24 24">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        PRODUCT CART
+    </h2>
+
+    <div class="filters-bar">
+        <input type="text" id="searchBox" placeholder="Search SKU, category or type product..." class="search-box" oninput="filterGrid()">
+        <div class="tabs-group">
+            <button class="tab active" onclick="switchTab(this, 'All')">All</button>
+            <button class="tab" onclick="switchTab(this, 'Electronics')">Electronics</button>
+            <button class="tab" onclick="switchTab(this, 'Software')">Software</button>
+            <button class="tab" onclick="switchTab(this, 'Apparel')">Apparel</button>
+            <button class="btn-add" onclick="openModal()">+ Add Product</button>
+        </div>
+    </div>
+
+    <div class="product-grid" id="mainGrid"></div>
+</div>
+
+<div class="modal-overlay" id="productModal">
+    <div class="modal-content" onkeydown="if(event.key === 'Enter') saveProduct();">
+        <h3 id="modalTitle" style="color:#FFF; margin-bottom:20px;">Deploy New Matrix Entry</h3>
+        <input type="hidden" id="editIndex">
+        
+        <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="pName" class="form-control" placeholder="e.g. MacBook Pro M4">
+        </div>
+        <div class="form-group">
+            <label>SKU Code</label>
+            <input type="text" id="pSku" class="form-control" placeholder="e.g. EL-MBP-16">
+        </div>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label>Category</label>
+                <select id="pCat" class="form-control">
+                    <option value="Electronics">Electronics</option>
+                    <option value="Software">Software</option>
+                    <option value="Apparel">Apparel</option>
+                    <option value="Services">Services</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Stock Quantity</label>
+                <input type="number" id="pStock" class="form-control" placeholder="10">
+            </div>
+        </div>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label>Price (₹)</label>
+                <input type="text" id="pPrice" class="form-control" placeholder="89,900">
+            </div>
+            <div class="form-group">
+                <label>GST Rate</label>
+                <input type="text" id="pGst" class="form-control" value="18%">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Product Graphic Attachment</label>
+            <div class="file-upload-wrapper">
+                <span id="uploadLabel" style="font-size:12px; color:var(--text-muted);">📷 Upload local image asset (or fallback auto-searched generation)</span>
+                <input type="file" id="pImageFile" accept="image/*" onchange="processImageUpload(this)">
+                <img id="modalImgPreview" class="preview-thumbnail">
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-save" onclick="saveProduct()">Save Product</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===== DATA STATE ENGINE WITH IMAGE INTEGRATION ===== */
+let inventory = [
+    { name: 'MacBook Pro 14"', sku: "EL-MBP-14", cat: "Electronics", price: "1,99,900", gst: "18%", stock: 12, img: "" },
+    { name: "iPad Air M3", sku: "EL-IPD-AIR", cat: "Electronics", price: "64,900", gst: "18%", stock: 4, img: "" },
+    { name: "Figma Pro Seat", sku: "SW-FIG-PRO", cat: "Software", price: "1,500", gst: "18%", stock: 999, img: "" },
+    { name: "Premium T-Shirt", sku: "AP-TSH-BLK", cat: "Apparel", price: "1,200", gst: "12%", stock: 142, img: "" },
+    { name: "Consulting Service", sku: "SV-CONS-HR", cat: "Services", price: "4,500", gst: "18%", stock: 999, img: "" },
+    { name: "AirPods Pro", sku: "EL-AIR-PRO", cat: "Electronics", price: "24,900", gst: "18%", stock: 0, img: "" }
+];
+
+let currentCategory = "All";
+let uploadedImageBase64 = "";
+
+function getIcon(category) {
+    switch(category) {
+        case 'Electronics': return '💻';
+        case 'Software': return '⚡';
+        case 'Apparel': return '👕';
+        case 'Services': return '💼';
+        default: return '📦';
+    }
+}
+
+/* SMART GENERATION: FALLBACK URL TARGETING SEARCH INTENT */
+function getSmartFallbackUrl(productName, category) {
+    let searchTerm = encodeURIComponent(productName ? productName : category);
+    return `https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60&sig=${searchTerm}`;
+}
+
+/* ===== GRID RENDER COMPONENT ===== */
+function renderGrid(dataToRender = inventory) {
+    const mainGrid = document.getElementById('mainGrid');
+    
+    if(dataToRender.length === 0) {
+        mainGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px; font-size:16px;">No system nodes matched the filter params.</div>`;
+        return;
+    }
+
+    mainGrid.innerHTML = dataToRender.map((p) => {
+        let absoluteIndex = inventory.findIndex(item => item.sku === p.sku);
+        
+        let status = "in", badge = "In Stock", stockClass = "";
+        if (p.stock == 0) { status = "out"; badge = "Out"; stockClass = "danger"; }
+        else if (p.stock <= 5) { status = "low"; badge = "Low Stock"; stockClass = "warn"; }
+
+        let cardImgSrc = p.img ? p.img : getSmartFallbackUrl(p.name, p.cat);
+
+        return `
+            <div class="product-card" onclick="openModal(${absoluteIndex})">
+                <span class="badge ${status}">${badge}</span>
+                <img src="${cardImgSrc}" class="card-banner-img" alt="node asset image">
+                <div class="card-center">
+                    <div class="title-icon-flex">
+                        <div class="box-icon-wrap">${getIcon(p.cat)}</div>
+                        <h4 class="product-title" title="${p.name}">${p.name}</h4>
+                    </div>
+                    <span class="sku-text">${p.sku} &bull; ${p.cat}</span>
+                    <div class="edit-hint">⚡ AMEND CORE IDENTITY PARAMETERS</div>
+                </div>
+              <div class="card-footer">
+
+    <div class="metric">
+        <span class="label">Price</span>
+        <span class="val">₹${p.price}</span>
+    </div>
+
+    <div class="metric center">
+        <span class="label">GST</span>
+        <span class="val" style="color:var(--secondary);">${p.gst}</span>
+    </div>
+
+    <div class="metric right">
+        <span class="label">Stock</span>
+        <span class="val ${stockClass}">${p.stock}</span>
+    </div>
+
+</div>
+
+<div class="product-actions">
+
+    <button
+        class="edit-btn"
+        onclick="event.stopPropagation(); openModal(${absoluteIndex})">
+
+        <i class="bi bi-pencil-square"></i>
+        Edit
+
+    </button>
+
+    <button
+        class="delete-btn"
+        onclick="event.stopPropagation(); deleteProduct(${absoluteIndex})">
+
+        <i class="bi bi-trash-fill"></i>
+        Delete
+
+    </button>
+
+</div>
+            </div>
+        `;
+    }).join('');
+}
+
+/* ===== CONTROL SEARCH AND CATEGORIES ROUTINES ===== */
+function switchTab(element, category) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+    currentCategory = category;
+    filterGrid();
+}
+
+function filterGrid() {
+    let query = document.getElementById('searchBox').value.toLowerCase();
+    let filtered = inventory.filter(p => {
+        let matchCat = (currentCategory === "All" || p.cat === currentCategory);
+        let matchQuery = p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query) || p.cat.toLowerCase().includes(query);
+        return matchCat && matchQuery;
+    });
+    renderGrid(filtered);
+}
+
+/* ===== PROCESS ATTACHED LOCAL IMAGE FILE ===== */
+function processImageUpload(input) {
+    if (input.files && input.files[0]) {
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            uploadedImageBase64 = e.target.result;
+            document.getElementById('modalImgPreview').src = uploadedImageBase64;
+            document.getElementById('modalImgPreview').style.display = "block";
+            document.getElementById('uploadLabel').innerText = "Image Loaded Successfully";
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+/* ===== MODAL INTERACTION CONTROLS ===== */
+function openModal(index = null) {
+    const modal = document.getElementById('productModal');
+    modal.style.display = 'flex';
+    uploadedImageBase64 = "";
+    document.getElementById('modalImgPreview').style.display = "none";
+    document.getElementById('pImageFile').value = "";
+    document.getElementById('uploadLabel').innerText = "📷 Upload local image asset (or fallback auto-searched generation)";
+    
+    let activeSearchText = document.getElementById('searchBox').value;
+
+    if (index !== null) {
+        document.getElementById('modalTitle').innerText = "Modify Core Node Data";
+        document.getElementById('editIndex').value = index;
+        document.getElementById('pName').value = inventory[index].name;
+        document.getElementById('pSku').value = inventory[index].sku;
+        document.getElementById('pCat').value = inventory[index].cat;
+        document.getElementById('pPrice').value = inventory[index].price;
+        document.getElementById('pGst').value = inventory[index].gst;
+        document.getElementById('pStock').value = inventory[index].stock;
+        if(inventory[index].img) {
+            document.getElementById('modalImgPreview').src = inventory[index].img;
+            document.getElementById('modalImgPreview').style.display = "block";
+            uploadedImageBase64 = inventory[index].img;
+        }
+    } else {
+        document.getElementById('modalTitle').innerText = "Deploy New Matrix Entry";
+        document.getElementById('editIndex').value = "";
+        document.getElementById('pName').value = activeSearchText; 
+        document.getElementById('pSku').value = "";
+        document.getElementById('pCat').value = currentCategory !== "All" ? currentCategory : "Electronics";
+        document.getElementById('pPrice').value = "";
+        document.getElementById('pGst').value = "18%";
+        document.getElementById('pStock').value = "";
+    }
+}
+
+function closeModal() {
+    document.getElementById('productModal').style.display = 'none';
+}
+
+function saveProduct() {
+    let index = document.getElementById('editIndex').value;
+    let name = document.getElementById('pName').value;
+    let sku = document.getElementById('pSku').value;
+    let cat = document.getElementById('pCat').value;
+    let price = document.getElementById('pPrice').value;
+    let gst = document.getElementById('pGst').value;
+    let stock = parseInt(document.getElementById('pStock').value) || 0;
+
+    if (!name || !sku || !price) {
+        alert("Action Aborted: Structural identities (Name, SKU, Price) cannot be blank.");
+        return;
+    }
+
+    let productData = { name, sku, cat, price, gst, stock, img: uploadedImageBase64 };
+
+    if (index !== "") {
+        inventory[index] = productData;
+    } else {
+        inventory.push(productData);
+    }
+
+    closeModal();
+    filterGrid();
+}
+function deleteProduct(index){
+
+    if(confirm("Delete this product?")){
+
+        inventory.splice(index,1);
+
+        filterGrid();
+
+    }
+
+}
+/* ===== AMBIENT BACKGROUND PARTICLES ACCELERATOR ===== */
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+const financeSymbols = ['•', '₹', '%', '$', '+', 'INV', 'DATA'];
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+class Particle {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + Math.random() * 50;
+        this.speed = 0.3 + Math.random() * 0.6;
+        this.alpha = 0.08 + Math.random() * 0.25;
+        this.size = 10 + Math.random() * 10;
+        this.text = financeSymbols[Math.floor(Math.random() * financeSymbols.length)];
+        this.drift = Math.sin(Math.random() * 2) * 0.15;
+    }
+    update() {
+        this.y -= this.speed;
+        this.x += this.drift;
+        if (this.y < -20 || this.x < 0 || this.x > canvas.width) { this.reset(); }
+    }
+    draw() {
+        ctx.fillStyle = `rgba(0, 212, 255, ${this.alpha})`;
+        ctx.font = `${this.size}px monospace`;
+        ctx.fillText(this.text, this.x, this.y);
+    }
+}
+
+for (let i = 0; i < 30; i++) { particles.push(new Particle()); }
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+}
+
+/* ===== INIT RUN ===== */
+renderGrid();
+animate();
+</script>
+
+</body>
+</html>
