@@ -284,7 +284,9 @@ body.no-scroll{overflow:hidden;}
 .mo-footer-txt a{color:var(--blue-neon);text-decoration:none;font-weight:600;cursor:pointer;}
 .mo-footer-txt a:hover{text-decoration:underline;}
 
-
+/* Admin hint badge in modal */
+.admin-hint{background:rgba(255,191,36,0.08);border:1px solid rgba(255,191,36,0.3);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:.75rem;color:#fbbf24;display:flex;align-items:center;gap:8px;}
+.admin-hint i{font-size:14px;flex-shrink:0;}
 
 .fp-step{display:none;}.fp-step.active{display:block;}
 .fp-icon{text-align:center;font-size:2.8rem;margin-bottom:14px;}
@@ -486,19 +488,21 @@ footer{background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);pa
       <!-- SIGN IN FORM -->
       <div id="form-signin">
         <div class="mo-sub">Welcome back — sign in to your dashboard.</div>
-       
+        <!-- Admin hint -->
+        <div class="admin-hint">
+      
+         
+        </div>
         <div class="mf-group">
           <label class="mf-label">Email Address</label>
-         <input
-    type="email"
-    class="mf-input"
-    id="si-email"
-    placeholder="you@company.com"
-    autocomplete="off"
-    autocorrect="off"
-    autocapitalize="off"
-    spellcheck="false"
-    name="no-email">
+         <input type="email"
+       class="mf-input"
+       id="si-email"
+       placeholder="you@company.com"
+       autocomplete="off"
+       autocorrect="off"
+       autocapitalize="off"
+       spellcheck="false">
           <div class="mf-err" id="si-email-err"></div>
         </div>
         <div class="mf-group">
