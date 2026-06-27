@@ -434,207 +434,352 @@
         .gst-valid { color: #00ff88; font-size: 0.8rem; }
         .gst-invalid { color: #ff4d4d; font-size: 0.8rem; }
 
-        /* Modal Invoice Preview Styling - UPDATED */
+        /* ==========================================
+           IMPROVED INVOICE PREVIEW STYLING
+        ============================================ */
         #invoicePreviewContent {
             background: #ffffff;
-            color: #1a1a1a;
-            padding: 50px;
+            color: #1a1a2e;
+            padding: 60px;
             font-family: 'Inter', sans-serif;
-            width: 210mm; /* A4 width */
+            width: 210mm;
             margin: auto;
             min-height: 297mm;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .inv-header { 
-            border-bottom: 3px solid #0050cc; 
-            padding-bottom: 30px; 
-            margin-bottom: 30px;
+        /* Invoice Header */
+        .inv-header {
+            border-bottom: 4px solid #0050cc;
+            padding-bottom: 35px;
+            margin-bottom: 35px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
         }
 
         .inv-company-logo {
-            max-height: 70px;
-            margin-bottom: 15px;
+            max-height: 80px;
+            margin-bottom: 20px;
+            object-fit: contain;
         }
 
         .inv-company-name {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 900;
+            color: #0050cc;
+            margin: 0 0 5px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .inv-company-info {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.8;
+            margin-top: 15px;
+        }
+
+        .inv-header-right {
+            text-align: right;
+        }
+
+        .inv-invoice-title {
+            font-size: 48px;
+            font-weight: 900;
             color: #0050cc;
             margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .inv-header-details {
+            margin-top: 25px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .inv-header-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .inv-header-detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .inv-header-detail-value {
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .inv-status-badge {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .inv-status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .inv-status-unpaid {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .inv-status-draft {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* Bill To Section */
+        .inv-section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 35px 0;
+        }
+
+        .inv-section-box {
+            padding: 22px;
+            background: #f8f9fa;
+            border-left: 4px solid #0050cc;
+            border-radius: 8px;
+            border: 2px solid #f0f0f0;
+            border-left: 4px solid #0050cc;
         }
 
         .inv-section-title {
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
-            color: #666;
+            color: #0050cc;
             letter-spacing: 1px;
-            margin: 25px 0 10px 0;
+            margin: 0 0 12px 0;
             font-weight: 700;
         }
 
+        .inv-section-content {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .inv-section-name {
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .inv-section-row {
+            margin-bottom: 5px;
+        }
+
+        .inv-section-label {
+            font-weight: 600;
+            color: #666;
+            display: inline-block;
+            width: 80px;
+        }
+
+        .inv-section-value {
+            color: #1a1a2e;
+        }
+
+        /* Items Table */
         .inv-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 25px 0;
+            margin: 30px 0;
+            font-size: 13px;
         }
 
         .inv-table thead {
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #0050cc, #0066ff);
             border-top: 2px solid #0050cc;
             border-bottom: 2px solid #0050cc;
         }
 
         .inv-table th {
-            padding: 12px 8px;
+            padding: 14px 10px;
             text-align: left;
             font-weight: 700;
-            color: #0050cc;
+            color: #ffffff;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .inv-table td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #e5e5e5;
-            font-size: 13px;
+            padding: 12px 10px;
+            border-bottom: 1px solid #e8e8e8;
+            color: #444;
+        }
+
+        .inv-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
         }
 
         .inv-table tbody tr:last-child td {
             border-bottom: 2px solid #0050cc;
         }
 
+        .inv-table tbody tr:hover {
+            background: #f0f4ff;
+        }
+
         .inv-amount {
             text-align: right;
             font-weight: 600;
+            color: #0050cc;
         }
 
-        .inv-row-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin: 30px 0;
-        }
-
-        .inv-box {
-            padding: 20px;
-            background: #f9f9f9;
-            border-left: 3px solid #0050cc;
-            border-radius: 4px;
-        }
-
-        .inv-box-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #666;
-            letter-spacing: 1px;
-            margin: 0 0 10px 0;
-            font-weight: 700;
-        }
-
-        .inv-box-content {
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .inv-box-name {
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 5px;
-        }
-
-        .inv-totals {
+        /* Totals Section */
+        .inv-totals-section {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 40px;
-            margin: 40px 0;
+            margin: 35px 0;
+        }
+
+        .inv-notes-area {
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #0050cc;
+            border-radius: 6px;
+            border: 2px solid #f0f0f0;
+            border-left: 4px solid #0050cc;
+        }
+
+        .inv-notes-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #0050cc;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .inv-notes-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+            white-space: pre-line;
         }
 
         .inv-totals-right {
-            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .inv-total-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e5e5;
+            padding: 10px 0;
+            border-bottom: 1px solid #e8e8e8;
             font-size: 13px;
         }
 
         .inv-total-row.total-label {
             font-weight: 700;
             color: #0050cc;
-            font-size: 14px;
-            border-bottom: none;
-            padding: 15px 0 8px 0;
+            border-bottom: 2px solid #0050cc;
+            padding: 12px 0;
+            margin-top: 8px;
         }
 
         .inv-total-row.grand-total {
-            background: #0050cc;
+            background: linear-gradient(135deg, #0050cc, #0066ff);
             color: white;
-            padding: 12px;
-            border-radius: 4px;
+            padding: 16px 12px;
+            border-radius: 6px;
             font-size: 16px;
-            font-weight: 700;
+            font-weight: 900;
             margin-top: 10px;
+            border-bottom: none;
         }
 
-        .inv-total-row.grand-total span:first-child {
-            font-size: 13px;
-        }
-
-        .inv-footer {
-            margin-top: 50px;
-            border-top: 3px solid #0050cc;
-            padding-top: 25px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 40px;
-        }
-
-        .inv-signature-box {
-            border-top: 2px solid #333;
-            padding-top: 15px;
-            margin-top: 40px;
-            text-align: center;
-            font-size: 12px;
+        .inv-total-label {
             font-weight: 600;
         }
 
-        .inv-qr-box {
+        .inv-total-amount {
+            font-weight: 700;
+        }
+
+        /* Footer Section */
+        .inv-footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 4px solid #0050cc;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .inv-footer-left {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .inv-footer-section-title {
+            font-weight: 700;
+            color: #0050cc;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .inv-signature-box {
+            border-top: 3px solid #1a1a2e;
+            padding-top: 20px;
+            margin-top: 35px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .inv-signature-line {
+            min-height: 50px;
+        }
+
+        .inv-footer-right {
             text-align: center;
         }
 
         .inv-qr-label {
             font-size: 12px;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 700;
         }
 
         #qrcode {
             display: inline-block !important;
+            padding: 10px;
+            border: 2px solid #0050cc;
+            border-radius: 8px;
+            background: #f8f9fa;
         }
 
         #qrcode img {
             display: inline-block !important;
-            max-width: 130px;
-        }
-
-        .inv-notes-section {
-            margin-top: 30px;
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 4px;
-        }
-
-        @media print {
-            body * { visibility: hidden; }
-            #invoiceModal, #invoiceModal * { visibility: visible; }
-            #invoiceModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
-            .btn-close, .modal-header, .modal-footer { display: none !important; }
+            max-width: 140px;
+            height: auto;
         }
 
         /* Logo Preview */
@@ -645,126 +790,98 @@
             display: none;
             margin-top: 10px;
         }
+
         /* ===============================
    Back to Dashboard Button
 ================================ */
 
-.back-dashboard-btn{
-    display:flex;
-    align-items:center;
-    gap:10px;
+        .back-dashboard-btn{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            background:rgba(255,255,255,.08);
+            border:1px solid rgba(255,255,255,.12);
+            color:#fff;
+            padding:12px 18px;
+            border-radius:14px;
+            font-weight:600;
+            transition:.35s;
+            backdrop-filter:blur(12px);
+            white-space:nowrap;
+        }
 
-    background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.12);
+        .back-dashboard-btn i{
+            font-size:20px;
+            color:#00b4ff;
+        }
 
-    color:#fff;
+        .back-dashboard-btn:hover{
+            background:linear-gradient(135deg,#0050cc,#00b4ff);
+            color:#fff;
+            transform:translateY(-2px);
+            box-shadow:0 10px 25px rgba(0,180,255,.35);
+        }
 
-    padding:12px 18px;
+        .back-dashboard-btn:hover i{
+            color:#fff;
+        }
 
-    border-radius:14px;
+        .header-logo{
+            width:58px;
+            height:58px;
+            object-fit:contain;
+            border-radius:14px;
+            background:linear-gradient(135deg,#0050cc,#00b4ff);
+            padding:10px;
+            box-shadow:
+                0 0 18px rgba(0,180,255,.35),
+                0 8px 20px rgba(0,0,0,.35);
+            transition:.35s;
+        }
 
-    font-weight:600;
+        .header-logo:hover{
+            transform:scale(1.08) rotate(-5deg);
+        }
 
-    transition:.35s;
-
-    backdrop-filter:blur(12px);
-
-    white-space:nowrap;
-}
-
-.back-dashboard-btn i{
-    font-size:20px;
-    color:#00b4ff;
-}
-
-.back-dashboard-btn:hover{
-
-    background:linear-gradient(135deg,#0050cc,#00b4ff);
-
-    color:#fff;
-
-    transform:translateY(-2px);
-
-    box-shadow:0 10px 25px rgba(0,180,255,.35);
-
-}
-
-.back-dashboard-btn:hover i{
-    color:#fff;
-}
-.header-logo{
-    width:58px;
-    height:58px;
-    object-fit:contain;
-
-    border-radius:14px;
-
-    background:linear-gradient(135deg,#0050cc,#00b4ff);
-
-    padding:10px;
-
-    box-shadow:
-        0 0 18px rgba(0,180,255,.35),
-        0 8px 20px rgba(0,0,0,.35);
-
-    transition:.35s;
-}
-
-.header-logo:hover{
-    transform:scale(1.08) rotate(-5deg);
-}
+        @media print {
+            body * { visibility: hidden; }
+            #invoiceModal, #invoiceModal * { visibility: visible; }
+            #invoiceModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+            .btn-close, .modal-header, .modal-footer { display: none !important; }
+        }
     </style>
 </head>
 <body>
 
    <header class="app-header">
     <div class="container">
-
         <div class="d-flex justify-content-between align-items-center">
-
             <!-- Left Side -->
             <div class="d-flex align-items-center gap-4">
-
                 <!-- Back Button -->
-                <button class="back-dashboard-btn"
-                        onclick="window.location.href='dashboard.html'">
-
+                <button class="back-dashboard-btn" onclick="window.location.href='dashboard.html'">
                     <i class="bi bi-arrow-left-circle-fill"></i>
                     <span>Back to Dashboard</span>
-
                 </button>
 
                 <!-- Logo -->
                 <div class="d-flex align-items-center">
                     <div class="me-3">
-    <img src="assets/logoo (2).png"
-         alt="InvoiceHub Logo"
-         class="header-logo">
-</div>
-
+                        <img src="assets/logoo (2).png" alt="InvoiceHub Logo" class="header-logo">
+                    </div>
                     <div>
-                        <h1 class="h3 mb-0 brand-font">
-                            INVOICE HUB
-                        </h1>
-
-                        <span class="text-dim small">
-                            THE FUTURE OF DIGITAL BILLING
-                        </span>
+                        <h1 class="h3 mb-0 brand-font">INVOICE HUB</h1>
+                        <span class="text-dim small">THE FUTURE OF DIGITAL BILLING</span>
                     </div>
                 </div>
-
             </div>
 
             <!-- Right Side -->
             <div class="text-end">
                 <div id="live-clock" class="fw-bold"></div>
-                <div class="text-dim small">
-                    Dashboard v4.0
-                </div>
+                <div class="text-dim small">Dashboard v4.0</div>
             </div>
-
         </div>
-
     </div>
 </header>
 
@@ -1062,8 +1179,8 @@
 
     <script>
         /**
-         * Smart Billing System - COMPLETE VERSION
-         * Fixed bugs and improved invoice format
+         * Smart Billing System - IMPROVED INVOICE FORMAT
+         * Professional borders, better structure, and complete functionality
          */
 
         // State Management
@@ -1279,11 +1396,13 @@
         }
 
         /**
-         * IMPROVED: generateInvoice() with professional format
+         * IMPROVED: generateInvoice() with Professional Format
          */
         function generateInvoice() {
             calculateTotals(); 
             const preview = document.getElementById('invoicePreviewContent');
+            const status = getVal('inv-status');
+            const statusClass = status === 'Paid' ? 'inv-status-paid' : status === 'Unpaid' ? 'inv-status-unpaid' : 'inv-status-draft';
             
             // Build Rows HTML
             let rowsHtml = '';
@@ -1304,7 +1423,7 @@
                             <td>${desc}</td>
                             <td>${hsn}</td>
                             <td>${qty} ${unit}</td>
-                            <td class="inv-amount">₹${price}</td>
+                            <td class="inv-amount">₹${parseFloat(price).toFixed(2)}</td>
                             <td class="inv-amount">${disc}%</td>
                             <td class="inv-amount">${gst}%</td>
                             <td class="inv-amount">${amt}</td>
@@ -1320,64 +1439,76 @@
             const gstType = getVal('gst-type');
 
             preview.innerHTML = `
+                <!-- INVOICE HEADER -->
                 <div class="inv-header">
                     <div>
                         ${invoiceData.logoData ? `<img src="${invoiceData.logoData}" class="inv-company-logo">` : ''}
                         <p class="inv-company-name">${getVal('comp-name') || 'COMPANY NAME'}</p>
-                        <div style="font-size: 13px; color: #666; line-height: 1.6;">
-                            ${getVal('comp-addr')}
-                        </div>
-                        <div style="font-size: 13px; color: #666; margin-top: 10px;">
-                            <strong>GST:</strong> ${getVal('comp-gst')}<br>
-                            <strong>Phone:</strong> ${getVal('comp-phone')}<br>
-                            <strong>Email:</strong> ${getVal('comp-email')}<br>
-                            <strong>Website:</strong> ${getVal('comp-web')}
+                        <div class="inv-company-info">
+                            <div><strong>Address:</strong> ${getVal('comp-addr')}</div>
+                            <div><strong>GST:</strong> ${getVal('comp-gst')}</div>
+                            <div><strong>Phone:</strong> ${getVal('comp-phone')}</div>
+                            <div><strong>Email:</strong> ${getVal('comp-email')}</div>
+                            <div><strong>Website:</strong> ${getVal('comp-web')}</div>
                         </div>
                     </div>
-                    <div style="text-align: right;">
-                        <h1 style="margin: 0; color: #0050cc; font-size: 42px;">INVOICE</h1>
-                        <div style="margin-top: 20px; font-size: 13px;">
-                            <div style="margin-bottom: 8px;"><strong>Invoice No.:</strong> <span style="font-size: 16px; color: #0050cc; font-weight: 700;">${getVal('inv-number')}</span></div>
-                            <div style="margin-bottom: 8px;"><strong>Date:</strong> ${getVal('inv-date')}</div>
-                            <div style="margin-bottom: 8px;"><strong>Due Date:</strong> ${getVal('inv-due')}</div>
+                    <div class="inv-header-right">
+                        <h1 class="inv-invoice-title">INVOICE</h1>
+                        <div class="inv-header-details">
+                            <div class="inv-header-detail-row">
+                                <span class="inv-header-detail-label">Invoice No.:</span>
+                                <span class="inv-header-detail-value" style="font-size: 16px;">${getVal('inv-number')}</span>
+                            </div>
+                            <div class="inv-header-detail-row">
+                                <span class="inv-header-detail-label">Date:</span>
+                                <span class="inv-header-detail-value">${getVal('inv-date')}</span>
+                            </div>
+                            <div class="inv-header-detail-row">
+                                <span class="inv-header-detail-label">Due Date:</span>
+                                <span class="inv-header-detail-value">${getVal('inv-due')}</span>
+                            </div>
                             <div style="margin-top: 15px;">
-                                <span style="display: inline-block; padding: 6px 12px; background: ${getVal('inv-status') === 'Paid' ? '#10b981' : '#f59e0b'}; color: white; border-radius: 4px; font-weight: 700; font-size: 12px; text-transform: uppercase;">${getVal('inv-status')}</span>
+                                <span class="inv-status-badge ${statusClass}">${status}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="inv-row-grid" style="margin: 35px 0;">
-                    <div class="inv-box">
-                        <p class="inv-box-title">Bill To</p>
-                        <div class="inv-box-content">
-                            <div class="inv-box-name">${getVal('cust-name') || 'CUSTOMER'}</div>
-                            <div>${getVal('cust-addr')}</div>
-                            <div style="margin-top: 10px;">
-                                <strong>Phone:</strong> ${getVal('cust-phone')}<br>
-                                <strong>Email:</strong> ${getVal('cust-email')}<br>
-                                <strong>GST:</strong> ${getVal('cust-gst')}
-                            </div>
+                <!-- BILL TO AND PAYMENT DETAILS -->
+                <div class="inv-section-grid">
+                    <div class="inv-section-box">
+                        <p class="inv-section-title">Bill To</p>
+                        <div class="inv-section-content">
+                            <div class="inv-section-name">${getVal('cust-name') || 'CUSTOMER'}</div>
+                            <div class="inv-section-row"><strong>Address:</strong> ${getVal('cust-addr')}</div>
+                            <div class="inv-section-row"><strong>Phone:</strong> ${getVal('cust-phone')}</div>
+                            <div class="inv-section-row"><strong>Email:</strong> ${getVal('cust-email')}</div>
+                            <div class="inv-section-row"><strong>GST:</strong> ${getVal('cust-gst')}</div>
                         </div>
                     </div>
-                    <div class="inv-box">
-                        <p class="inv-box-title">Payment Details</p>
-                        <div class="inv-box-content">
-                            <strong>Method:</strong> ${invoiceData.payMethod}<br>
-                            ${invoiceData.payMethod === 'UPI' ? `<strong>UPI ID:</strong> ${getVal('pay-upi-id')}<br>` : ''}
-                            ${invoiceData.payMethod === 'Card' ? `<strong>Last 4 Digits:</strong> ${getVal('pay-card-last4')}<br>` : ''}
-                            ${invoiceData.payMethod === 'Bank' ? `<strong>Account Holder:</strong> ${getVal('bank-holder')}<br><strong>Account No.:</strong> ${getVal('bank-account')}<br><strong>IFSC:</strong> ${getVal('bank-ifsc')}<br>` : ''}
+                    <div class="inv-section-box">
+                        <p class="inv-section-title">Payment Details</p>
+                        <div class="inv-section-content">
+                            <div class="inv-section-row"><strong>Method:</strong> ${invoiceData.payMethod}</div>
+                            ${invoiceData.payMethod === 'UPI' ? `<div class="inv-section-row"><strong>UPI ID:</strong> ${getVal('pay-upi-id')}</div>` : ''}
+                            ${invoiceData.payMethod === 'Card' ? `<div class="inv-section-row"><strong>Last 4 Digits:</strong> ${getVal('pay-card-last4')}</div>` : ''}
+                            ${invoiceData.payMethod === 'Bank' ? `
+                                <div class="inv-section-row"><strong>Account Holder:</strong> ${getVal('bank-holder')}</div>
+                                <div class="inv-section-row"><strong>Account No.:</strong> ${getVal('bank-account')}</div>
+                                <div class="inv-section-row"><strong>IFSC:</strong> ${getVal('bank-ifsc')}</div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
 
+                <!-- ITEMS TABLE -->
                 <table class="inv-table">
                     <thead>
                         <tr>
                             <th style="width: 5%;">#</th>
-                            <th style="width: 30%;">Description</th>
+                            <th style="width: 28%;">Description</th>
                             <th style="width: 10%;">HSN</th>
-                            <th style="width: 15%;">Qty</th>
+                            <th style="width: 12%;">Qty</th>
                             <th style="width: 12%;">Price</th>
                             <th style="width: 8%;">Disc</th>
                             <th style="width: 10%;">GST</th>
@@ -1389,72 +1520,73 @@
                     </tbody>
                 </table>
 
-                <div class="inv-totals">
+                <!-- TOTALS AND NOTES -->
+                <div class="inv-totals-section">
                     <div>
                         ${getVal('inv-notes') ? `
-                            <div class="inv-notes-section">
-                                <p class="inv-section-title">Notes</p>
-                                <p style="font-size: 13px; margin: 0; line-height: 1.6;">${getVal('inv-notes')}</p>
+                            <div class="inv-notes-area">
+                                <p class="inv-notes-title">Notes</p>
+                                <p class="inv-notes-text">${getVal('inv-notes')}</p>
                             </div>
                         ` : ''}
                         ${getVal('inv-terms') ? `
-                            <div class="inv-notes-section" style="margin-top: 15px;">
-                                <p class="inv-section-title">Terms & Conditions</p>
-                                <p style="font-size: 13px; margin: 0; line-height: 1.6; white-space: pre-line;">${getVal('inv-terms')}</p>
+                            <div class="inv-notes-area" style="margin-top: 15px;">
+                                <p class="inv-notes-title">Terms & Conditions</p>
+                                <p class="inv-notes-text">${getVal('inv-terms')}</p>
                             </div>
                         ` : ''}
                     </div>
 
                     <div class="inv-totals-right">
                         <div class="inv-total-row">
-                            <span>Subtotal:</span>
-                            <span>${getHtml('break-gross')}</span>
+                            <span class="inv-total-label">Subtotal:</span>
+                            <span class="inv-total-amount">${getHtml('break-gross')}</span>
                         </div>
                         <div class="inv-total-row">
-                            <span>Discount:</span>
-                            <span>${getHtml('break-disc')}</span>
+                            <span class="inv-total-label">Discount:</span>
+                            <span class="inv-total-amount">${getHtml('break-disc')}</span>
                         </div>
                         <div class="inv-total-row">
-                            <span>Taxable:</span>
-                            <span>${taxableAmount}</span>
+                            <span class="inv-total-label">Taxable:</span>
+                            <span class="inv-total-amount">${taxableAmount}</span>
                         </div>
                         ${gstType === 'igst' ? `
                             <div class="inv-total-row">
-                                <span>IGST:</span>
-                                <span>${totalGST}</span>
+                                <span class="inv-total-label">IGST:</span>
+                                <span class="inv-total-amount">${totalGST}</span>
                             </div>
                         ` : `
                             <div class="inv-total-row">
-                                <span>CGST:</span>
-                                <span>${getHtml('break-cgst')}</span>
+                                <span class="inv-total-label">CGST (9%):</span>
+                                <span class="inv-total-amount">${getHtml('break-cgst')}</span>
                             </div>
                             <div class="inv-total-row">
-                                <span>SGST:</span>
-                                <span>${getHtml('break-sgst')}</span>
+                                <span class="inv-total-label">SGST (9%):</span>
+                                <span class="inv-total-amount">${getHtml('break-sgst')}</span>
                             </div>
                         `}
                         <div class="inv-total-row grand-total">
-                            <span>GRAND TOTAL</span>
-                            <span>${grandTotal}</span>
+                            <span class="inv-total-label">GRAND TOTAL</span>
+                            <span class="inv-total-amount">${grandTotal}</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- FOOTER -->
                 <div class="inv-footer">
-                    <div>
-                        <p style="font-size: 13px; color: #666; margin: 0 0 5px 0;"><strong>Company Contact Information</strong></p>
-                        <p style="font-size: 12px; color: #666; margin: 0;">
-                            Website: ${getVal('comp-web')}<br>
-                            Email: ${getVal('comp-email')}<br>
-                            Phone: ${getVal('comp-phone')}
-                        </p>
+                    <div class="inv-footer-left">
+                        <div class="inv-footer-section-title">Company Information</div>
+                        <div>${getVal('comp-web')}</div>
+                        <div>${getVal('comp-email')}</div>
+                        <div>${getVal('comp-phone')}</div>
                         <div class="inv-signature-box">
+                            <div class="inv-signature-line"></div>
                             Authorized Signature
                         </div>
                     </div>
-                    <div class="inv-qr-box">
+                    <div class="inv-footer-right">
                         <div class="inv-qr-label">Scan to Verify</div>
-                        <div id="qrcode" style="display: inline-block;"></div>
+                        <div id="qrcode"></div>
                     </div>
                 </div>
             `;
@@ -1491,8 +1623,8 @@
 
                     new QRCode(qrContainer, {
                         text: qrData,
-                        width: 130,
-                        height: 130,
+                        width: 140,
+                        height: 140,
                         correctLevel: QRCode.CorrectLevel.M,
                         useSVG: false
                     });
