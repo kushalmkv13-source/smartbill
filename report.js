@@ -50,12 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------------------------
     // Revenue Chart
     // -------------------------
-    const revenueCanvas = document.getElementById("revenueChart");
+  const revenueCanvas = document.getElementById("revenueChart");
 
-    if (revenueCanvas && typeof Chart !== "undefined") {
+let revenueChart;
 
-        new Chart(revenueCanvas, {
+if (revenueCanvas && typeof Chart !== "undefined") {
 
+    revenueChart = new Chart(revenueCanvas,{
             type: "line",
 
             data: {
@@ -112,6 +113,39 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
     }
+    // Revenue Period Switch
+document.querySelectorAll(".chip").forEach(btn => {
+
+    btn.addEventListener("click", function () {
+
+        document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+        this.classList.add("active");
+
+        let labels = [];
+        let values = [];
+
+        if (this.innerText === "3M") {
+            labels = ["Jan","Feb","Mar"];
+            values = [68000,75000,82000];
+        }
+
+        if (this.innerText === "6M") {
+            labels = ["Oct","Nov","Dec","Jan","Feb","Mar"];
+            values = [65000,59000,72000,68000,75000,82000];
+        }
+
+        if (this.innerText === "12M") {
+            labels = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
+            values = [32000,42000,39000,52000,48000,61000,65000,59000,72000,68000,75000,82000];
+        }
+
+        revenueChart.data.labels = labels;
+        revenueChart.data.datasets[0].data = values;
+        revenueChart.update();
+
+    });
+
+});
 
     // -------------------------
     // GST Doughnut Chart
@@ -181,44 +215,65 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------------------------
     const tbody = document.getElementById("tbody");
 
-    if (tbody) {
+    
 
-        const rows = [
+      const reportData = {
 
-            ["April","₹45,000","₹18,000","₹27,000","₹8,100","+12%"],
-            ["May","₹52,000","₹20,000","₹32,000","₹9,360","+15%"],
-            ["June","₹48,000","₹19,000","₹29,000","₹8,640","+8%"],
-            ["July","₹60,000","₹24,000","₹36,000","₹10,800","+18%"],
-            ["August","₹58,000","₹22,000","₹36,000","₹10,440","+10%"],
-            ["September","₹65,000","₹25,000","₹40,000","₹11,700","+22%"]
+    sales: [
+        ["April","₹45,000","₹18,000","₹27,000","₹8,100","+12%"],
+        ["May","₹52,000","₹20,000","₹32,000","₹9,360","+15%"],
+        ["June","₹48,000","₹19,000","₹29,000","₹8,640","+8%"],
+        ["July","₹60,000","₹24,000","₹36,000","₹10,800","+18%"],
+        ["August","₹58,000","₹22,000","₹36,000","₹10,440","+10%"],
+        ["September","₹65,000","₹25,000","₹40,000","₹11,700","+22%"]
+    ],
 
-        ];
+    revenue: [
+        ["April","₹45,000","","","",""],
+        ["May","₹52,000","","","",""],
+        ["June","₹48,000","","","",""],
+        ["July","₹60,000","","","",""],
+        ["August","₹58,000","","","",""],
+        ["September","₹65,000","","","",""]
+    ],
 
-        rows.forEach(row => {
+    gst: [
+        ["April","","","","₹8,100",""],
+        ["May","","","","₹9,360",""],
+        ["June","","","","₹8,640",""],
+        ["July","","","","₹10,800",""],
+        ["August","","","","₹10,440",""],
+        ["September","","","","₹11,700",""]
+    ]
 
-            tbody.innerHTML += `
+};
 
-            <tr>
+function loadTable(type){
 
-                <td class="month">${row[0]}</td>
+    tbody.innerHTML="";
 
-                <td>${row[1]}</td>
+    reportData[type].forEach(row=>{
 
-                <td>${row[2]}</td>
+        tbody.innerHTML += `
+        <tr>
+            <td class="month">${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${row[4]}</td>
+            <td class="pos">${row[5]}</td>
+        </tr>
+        `;
 
-                <td>${row[3]}</td>
+    });
 
-                <td>${row[4]}</td>
+}
 
-                <td class="pos">${row[5]}</td>
+loadTable("sales");  
 
-            </tr>
+    
 
-            `;
-
-        });
-
-    }
+    
 
     // -------------------------
     // Export Button
@@ -234,7 +289,50 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
     }
+// =============================
+// Report Tabs Switching
+// =============================
 
+const tabs = document.querySelectorAll(".tab");
+
+tabs.forEach(tab => {
+
+    tab.addEventListener("click", function(){
+
+        tabs.forEach(t=>t.classList.remove("active"));
+
+        this.classList.add("active");
+
+        const type = this.dataset.tab;
+
+        loadTable(type);
+
+    });
+
+});
+// =============================
+// Animated Tab Indicator
+// =============================
+
+const indicator = document.getElementById("tabIndicator");
+
+if (indicator) {
+
+    function moveIndicator(btn) {
+        indicator.style.width = btn.offsetWidth + "px";
+        indicator.style.left = btn.offsetLeft + "px";
+    }
+
+    // Initial position
+    moveIndicator(document.querySelector(".tab.active"));
+
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            moveIndicator(tab);
+        });
+    });
+
+}
     // -------------------------
     // Print Button
     // -------------------------
