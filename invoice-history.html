@@ -133,7 +133,8 @@
                                 <th class="pb-3">Coustomer Name</th>
                                 <th class="pb-3">Product Name</th>
                                 <th class="pb-3"> Payment Status</th>
-                                <th class="pb-3">Price </th>
+                               <th class="pb-3">Price</th>
+<th class="pb-3 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
@@ -150,68 +151,317 @@
         </main>
     </div>
 
-    <script>
-        // DATA MANAGEMENT
-        document.addEventListener("DOMContentLoaded", fetchHistory);
-        document.getElementById('searchInput').addEventListener('input', fetchHistory);
-        document.getElementById('statusFilter').addEventListener('change', fetchHistory);
+   <script>
 
-        function fetchHistory() {
-            const tableBody = document.getElementById('historyTableBody');
-            const emptyState = document.getElementById('emptyState');
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
+document.addEventListener("DOMContentLoaded", fetchHistory);
 
-            // Fetch invoices from localStorage
-            let history = JSON.parse(localStorage.getItem('invoicehub_history')) || [];
+document.getElementById("searchInput").addEventListener("input", fetchHistory);
 
-            let filteredData = history.filter(item => {
-                const matchesSearch = item.invoiceNo.toLowerCase().includes(searchTerm) || 
-                                      item.customerName.toLowerCase().includes(searchTerm);
-                const matchesStatus = (statusFilter === 'all' || item.status === statusFilter);
-                return matchesSearch && matchesStatus;
-            });
+document.getElementById("statusFilter").addEventListener("change", fetchHistory);
 
-            tableBody.innerHTML = '';
+async function fetchHistory() {
 
-            if (filteredData.length === 0) {
-                emptyState.classList.remove('d-none');
-            } else {
-                emptyState.classList.add('d-none');
-                filteredData.forEach((inv, index) => {
-                    const row = `
-                        <tr class="align-middle" style="border-bottom: 1px solid rgba(0, 212, 255, 0.05);">
-                            <td class="text-secondary small" style="font-family: monospace;">${inv.date}</td>
-                            <td class="text-info fw-bold">#${inv.invoiceNo}</td>
-                            <td class="text-white">${inv.customerName}</td>
-                            <td class="text-neon fw-bold">₹${parseFloat(inv.totalAmount).toLocaleString('en-IN')}</td>
-                            <td><span class="badge ${inv.status === 'Paid' ? 'success' : 'warning'}">${inv.status}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-info me-2" title="Export PDF"><i class="bi bi-file-earmark-pdf"></i></button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteInvoice(${index})" title="Purge"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-            }
+    const tableBody = document.getElementById("historyTableBody");
+    const emptyState = document.getElementById("emptyState");
+
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+    const statusFilter = document.getElementById("statusFilter").value;
+
+    tableBody.innerHTML = "";
+
+    try {
+
+      const token = localStorage.getItem("accessToken");
+
+const response = await fetch(
+    "http://127.0.0.1:8000/api/invoices/",
+    {
+        headers:{
+            "Authorization":`Bearer ${token}`
+        }
+    }
+);
+
+        const invoices = await response.json();
+
+        const filtered = invoices.filter(invoice => {
+
+            const matchesSearch =
+                invoice.invoice_number.toLowerCase().includes(searchTerm) ||
+                invoice.customer_name.toLowerCase().includes(searchTerm);
+
+            const matchesStatus =
+                statusFilter === "all" ||
+                invoice.status === statusFilter;
+
+            return matchesSearch && matchesStatus;
+
+        });
+
+        if(filtered.length===0){
+
+            emptyState.classList.remove("d-none");
+            return;
+
         }
 
-        function deleteInvoice(index) {
-            if (confirm("Permanently erase this data record?")) {
-                let history = JSON.parse(localStorage.getItem('invoicehub_history')) || [];
-                history.splice(index, 1);
-                localStorage.setItem('invoicehub_history', JSON.stringify(history));
-                fetchHistory();
+        emptyState.classList.add("d-none");
+
+        filtered.forEach((invoice,index)=>{
+
+         tableBody.innerHTML += `
+<tr>
+
+    <td>${index+1}</td>
+
+    <td>${invoice.invoice_number}</td>
+
+    <td>${invoice.customer_name}</td>
+
+    <td>
+${
+invoice.items.length
+?
+invoice.items.map(item=>item.product_name).join(", ")
+:
+"-"
+}
+</td>
+    <td>
+        <span class="badge ${invoice.status==="Paid"?"success":"warning"}">
+            ${invoice.status}
+        </span>
+    </td>
+
+    <td>
+        ₹ ${parseFloat(invoice.grand_total).toLocaleString("en-IN")}
+    </td>
+
+    <td>
+
+    <button class="btn btn-info btn-sm"
+            onclick="viewInvoice(${invoice.id})"
+            title="View Invoice">
+        <i class="bi bi-eye"></i>
+    </button>
+
+    
+    <button class="btn btn-danger btn-sm"
+            onclick="deleteInvoice(${invoice.id})"
+            title="Delete Invoice">
+        <i class="bi bi-trash"></i>
+    </button>
+
+</td>
+
+</tr>
+`;
+
+        });
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
+async function deleteInvoice(id){
+
+    if(!confirm("Delete this invoice?")) return;
+
+    const token = localStorage.getItem("accessToken");
+
+    try{
+
+        const response = await fetch(
+
+            `http://127.0.0.1:8000/api/invoices/${id}/`,
+
+            {
+
+                method:"DELETE",
+
+                headers:{
+                    "Authorization":`Bearer ${token}`
+                }
+
             }
+
+        );
+
+        if(response.ok){
+
+            alert("Invoice Deleted Successfully");
+
+            fetchHistory();
+
         }
 
-        function clearHistory() {
-            if (confirm("DANGER: Execute full system purge? All history will be lost.")) {
-                localStorage.removeItem('invoicehub_history');
-                fetchHistory();
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
+async function viewInvoice(id){
+
+    const token = localStorage.getItem("accessToken");
+
+    try{
+
+        const response = await fetch(
+
+            `http://127.0.0.1:8000/api/invoices/${id}/`,
+
+            {
+
+                headers:{
+
+                    "Authorization":`Bearer ${token}`
+
+                }
+
             }
+
+        );
+
+        const invoice = await response.json();
+
+        console.log(invoice);
+
+        alert(
+
+`Invoice : ${invoice.invoice_number}
+
+Customer : ${invoice.customer_name}
+
+Amount : ₹${invoice.grand_total}
+
+Status : ${invoice.status}`
+
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
+async function downloadInvoice(id){
+
+    const token = localStorage.getItem("accessToken");
+
+    try{
+
+        const response = await fetch(
+
+            `http://127.0.0.1:8000/api/invoices/${id}/`,
+
+            {
+
+                headers:{
+                    "Authorization":`Bearer ${token}`
+                }
+
+            }
+
+        );
+
+        if(!response.ok){
+
+            throw new Error("Unable to load invoice.");
+
         }
+
+        const invoice = await response.json();
+
+        // Store invoice temporarily
+        localStorage.setItem(
+            "selectedInvoice",
+            JSON.stringify(invoice)
+        );
+
+        // Open preview page
+        window.open(
+            `invoice-preview.html?id=${id}`,
+            "_blank"
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert("Unable to download invoice.");
+
+    }
+
+}
+async function clearHistory() {
+    const token = localStorage.getItem("accessToken");
+
+    if (!confirm("Delete all invoices?")) return;
+
+    try {
+
+       const response = await fetch(
+    "http://127.0.0.1:8000/api/invoices/",
+    {
+        headers:{
+            "Authorization":`Bearer ${token}`
+        }
+    }
+); 
+
+        const invoices = await response.json();
+
+        for (const invoice of invoices) {
+
+           await fetch(
+
+`http://127.0.0.1:8000/api/invoices/${invoice.id}/`,
+
+{
+
+method:"DELETE",
+
+headers:{
+
+"Authorization":`Bearer ${token}`
+
+}
+
+}
+
+);
+        }
+
+        alert("All invoice history deleted successfully.");
+
+        fetchHistory();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Error deleting history.");
+
+    }
+
+}
+
+
+
     </script>
 </body>
 </html>

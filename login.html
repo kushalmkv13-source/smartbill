@@ -35,7 +35,15 @@ body.no-scroll{overflow:hidden;}
   100%{transform:translateY(-20vh) rotate(var(--rot,360deg));opacity:0;}
 }
 .float-currency{font-size:var(--fs,1.4rem);color:var(--blue-neon);text-shadow:0 0 12px var(--blue-neon);font-weight:700;}
-.float-icon{font-size:var(--fs,1.2rem);color:var(--blue-neon);opacity:0.15;}
+.float-icon{
+
+    color:#00d4ff;
+
+    opacity:.12;
+
+    filter:drop-shadow(0 0 10px #00d4ff);
+
+}
 .float-doc{width:var(--w,44px);height:var(--h,56px);background:rgba(255,255,255,0.03);border:1px solid rgba(0,212,255,0.15);border-radius:4px;backdrop-filter:blur(4px);box-shadow:0 0 10px rgba(0,212,255,0.08);}
 .float-qr{width:36px;height:36px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.3);border-radius:6px;box-shadow:0 0 14px rgba(0,212,255,0.25);display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px;}
 .float-qr span{background:var(--blue-neon);border-radius:1px;}
@@ -361,6 +369,7 @@ footer{background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);pa
   .section{padding:60px 0;}.dashboard{margin-top:40px;}
   .mf-row{grid-template-columns:1fr;}
 }
+
 </style>
 </head>
 <body class="no-scroll">
@@ -525,11 +534,8 @@ footer{background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);pa
         <button class="btn-glow mb" id="btn-signin" onclick="doSignIn()">
           <i class="bi bi-box-arrow-in-right"></i> Sign In
         </button>
-        <div class="mo-divider">or continue with</div>
-        <button class="btn-outline-mo" onclick="doGoogleAuth()">
-          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continue with Google
-        </button>
+        
+        
         <div class="mo-footer-txt">Don't have an account? <a onclick="switchAuthTab('signup')">Create one free →</a></div>
       </div>
 
@@ -596,11 +602,8 @@ footer{background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);pa
         <button class="btn-glow mb" id="btn-signup" onclick="doSignUp()">
           <i class="bi bi-person-plus"></i> Create Free Account
         </button>
-        <div class="mo-divider">or</div>
-        <button class="btn-outline-mo" onclick="doGoogleAuth()">
-          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Sign up with Google
-        </button>
+        
+       
         <div class="mo-footer-txt">Already have an account? <a onclick="switchAuthTab('signin')">Sign in →</a></div>
       </div>
     </div>
@@ -647,7 +650,12 @@ footer{background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.06);pa
           <input type="text" maxlength="1" oninput="otpNext(this,5)" onkeydown="otpBack(this,event,5)">
         </div>
         <div class="mf-err" id="fp-otp-err" style="text-align:center;margin-bottom:12px;"></div>
-        <div style="text-align:center;font-size:.75rem;color:var(--text-muted);margin-bottom:16px;">💡 Hint: use <strong style="color:var(--blue-neon);">1 2 3 4 5 6</strong></div>
+        <div id="otpMessage"
+     style="text-align:center;
+            font-size:.85rem;
+            color:#00D4FF;
+            margin-bottom:16px;">
+</div>
         <button class="btn-glow mb" onclick="fpStep2()"><i class="bi bi-shield-check"></i> Verify OTP</button>
         <div class="mo-footer-txt"><a onclick="fpGoTo(1)">Resend OTP</a></div>
       </div>
@@ -882,73 +890,6 @@ const ADMIN_EMAIL = 'admin@invoicehub.com';
 const ADMIN_PW    = 'Admin@123';
 const ADMIN_PW_B64 = btoa(unescape(encodeURIComponent(ADMIN_PW)));
 
-/* ============================================================
-   IndexedDB
-   ============================================================ */
-const DB_NAME = 'SmartBillingDB';
-const DB_VER  = 1;
-let db = null;
-
-function openDB() {
-  return new Promise((res, rej) => {
-    if (db) { res(db); return; }
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains('users')) {
-        const s = d.createObjectStore('users', { keyPath: 'email' });
-        s.createIndex('email', 'email', { unique: true });
-      }
-    };
-    req.onsuccess = async e => {
-      db = e.target.result;
-      // ── Seed default admin on first run ──
-      await seedAdmin();
-      res(db);
-    };
-    req.onerror = e => rej(e.target.error);
-  });
-}
-
-async function seedAdmin() {
-  // Check if admin already exists; if not, create it
-  const existing = await dbGetUser(ADMIN_EMAIL).catch(() => null);
-  if (!existing) {
-    const adminUser = {
-      email   : ADMIN_EMAIL,
-      fname   : 'Admin',
-      lname   : '',
-      biz     : 'Invoice Hub HQ',
-      phone   : '+91 00000 00000',
-      pw      : ADMIN_PW_B64,
-      plan    : 'Enterprise',
-      role    : 'admin',
-      created : new Date().toISOString(),
-      id      : 1
-    };
-    await dbPutUser(adminUser);
-  }
-}
-
-async function dbGetUser(email) {
-  const d = await openDB();
-  return new Promise((res, rej) => {
-    const tx  = d.transaction('users', 'readonly');
-    const req = tx.objectStore('users').get(email);
-    req.onsuccess = e => res(e.target.result || null);
-    req.onerror   = e => rej(e.target.error);
-  });
-}
-
-async function dbPutUser(user) {
-  const d = await openDB();
-  return new Promise((res, rej) => {
-    const tx  = d.transaction('users', 'readwrite');
-    const req = tx.objectStore('users').put(user);
-    req.onsuccess = () => res(true);
-    req.onerror   = e => rej(e.target.error);
-  });
-}
 
 /* ============================================================
    SESSION
@@ -978,17 +919,41 @@ function clearSession() {
 
 /* ============================================================
    TOAST
-   ============================================================ */
-function showToast(msg, type='info', dur=3800) {
-  const icons = { success:'bi-check-circle-fill', error:'bi-x-circle-fill', info:'bi-info-circle-fill', warn:'bi-exclamation-triangle-fill' };
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = `toast-item ${type}`;
-  t.innerHTML = `<i class="bi ${icons[type]||icons.info}"></i><span>${msg}</span>`;
-  c.appendChild(t);
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 350); }, dur);
-}
+   ============================================================ */function showToast(message,type="info"){
 
+    const container=document.getElementById("toast-container");
+
+    const toast=document.createElement("div");
+
+    toast.className=`toast-item ${type}`;
+
+    let icon="bi-info-circle-fill";
+
+    if(type==="success")
+        icon="bi-check-circle-fill";
+
+    if(type==="error")
+        icon="bi-x-circle-fill";
+
+    if(type==="warning")
+        icon="bi-exclamation-triangle-fill";
+
+    toast.innerHTML=`
+        <i class="bi ${icon}"></i>
+        <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(()=>{
+        toast.classList.add("out");
+    },2600);
+
+    setTimeout(()=>{
+        toast.remove();
+    },3000);
+
+}
 /* ============================================================
    OVERLAYS
    ============================================================ */
@@ -1088,251 +1053,421 @@ function evalPwStrength(val, barId, textId) {
 /* ============================================================
    SIGN IN  ← KEY CHANGE: admin check + routing
    ============================================================ */
+
 async function doSignIn() {
-  const email    = document.getElementById('si-email').value.trim();
-  const pw       = document.getElementById('si-password').value;
-  const remember = document.getElementById('si-remember').checked;
-// Hardcoded Admin Login
-if (
-    email === "admin@invoicehub.com" &&
-    pw === "Admin@123"
-) {
-    localStorage.setItem("userRole", "admin");
+
+    const username = document.getElementById("si-email").value.trim();
+    const password = document.getElementById("si-password").value;
+
+    if (!username || !password) {
+        alert("Please enter username and password");
+        return;
+    }
+
+    try {
+
+        const response = await fetch("http://127.0.0.1:8000/api/login/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+        localStorage.setItem("accessToken", data.access);
+localStorage.setItem("refreshToken", data.refresh);
+
+      if (response.ok) {
+
     localStorage.setItem("isLoggedIn", "true");
 
-    window.location.href = "admin-dashboard.html";
-    return;
+    localStorage.setItem("loggedUser", JSON.stringify(data));
+    localStorage.setItem("accessToken", data.access);
+localStorage.setItem("refreshToken", data.refresh);
+
+    localStorage.setItem("userId", data.id);
+
+    localStorage.setItem("username", data.username);
+
+    localStorage.setItem("email", data.email);
+    
+
+    localStorage.setItem("first_name", data.first_name || "");
+
+    localStorage.setItem("last_name", data.last_name || "");
+
+    showToast("Login Successful 🎉", "success");
+
+    window.location.href = "dashboard.html";
+
+}
+ else {
+
+           showToast("Invalid Email or Password", "error");
+
+        }
+
+    } catch (err) {
+
+        console.error(err);
+        alert("Cannot connect to Django server.");
+
+    }
+
 }
 
-const user = await dbGetUser(email);
-  clearAllErrs('si-email', 'si-pass');
-
-  let ok = true;
-  if (!isEmail(email)) { showMfErr('si-email', 'Enter a valid email address.'); ok = false; }
-  if (!pw)             { showMfErr('si-pass',  'Password is required.'); ok = false; }
-  if (!ok) return;
-
-  setBtnLoading('btn-signin', true, '');
-
-  try {
-    await openDB();
-    const user = await dbGetUser(email);
-
-    if (!user) {
-      showMfErr('si-email', 'No account found with this email.');
-      setBtnLoading('btn-signin', false, '<i class="bi bi-box-arrow-in-right"></i> Sign In');
-      return;
-    }
-
-    const encoded = btoa(unescape(encodeURIComponent(pw)));
-    if (user.pw !== encoded) {
-      showMfErr('si-pass', 'Incorrect password. Please try again.');
-      setBtnLoading('btn-signin', false, '<i class="bi bi-box-arrow-in-right"></i> Sign In');
-      return;
-    }
-
-    setSession(user, remember);
-    // ===============================
-// Save current user for dashboard/profile
-// ===============================
-const currentUser = {
-    name: `${user.fname} ${user.lname || ""}`.trim(),
-    email: user.email,
-    phone: user.phone || "",
-    biz: user.biz || "",
-    role: user.role || "Customer",
-    created: user.created,
-    profilePic: user.profilePic || ""
-};
-
-localStorage.setItem("currentUser", JSON.stringify(currentUser));
-
-localStorage.setItem(
-    "createdDate",
-    new Date(user.created).toLocaleDateString()
-);
-
-localStorage.setItem(
-    "lastLogin",
-    new Date().toLocaleString()
-);
-    closeAllOverlays();
-
-    // ── Route based on role ──
-    if (user.role === 'admin') {
-      showToast(`🛡️ Welcome, Admin! Redirecting to Admin Dashboard…`, 'success');
-      setTimeout(() => { window.location.href = 'admin-dashboard.html'; }, 700);
-    } else {
-      showToast(`👋 Welcome back, ${user.fname}!`, 'success');
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
-    }
-
-  } catch (err) {
-    console.error(err);
-    showToast('Login failed. Please try again.', 'error');
-  } finally {
-    setBtnLoading('btn-signin', false, '<i class="bi bi-box-arrow-in-right"></i> Sign In');
-  }
-}
-
-/* ============================================================
-   SIGN UP  ← normal users always go to dashboard.html
-   ============================================================ */
 async function doSignUp() {
-  const fname = document.getElementById('su-fname').value.trim();
-  const lname = document.getElementById('su-lname').value.trim();
-  const biz   = document.getElementById('su-biz').value.trim();
-  const email = document.getElementById('su-email').value.trim();
-  const phone = document.getElementById('su-phone').value.trim();
-  const pw    = document.getElementById('su-pw').value;
-  const cpw   = document.getElementById('su-cpw').value;
-  const terms = document.getElementById('su-terms').checked;
 
-  clearAllErrs('su-fname','su-lname','su-biz','su-email','su-phone','su-pw','su-cpw','su-terms');
+    const firstName = document.getElementById("su-fname").value.trim();
+    const lastName = document.getElementById("su-lname").value.trim();
+    const username = document.getElementById("su-email").value.trim(); // Using email as username
+    const email = document.getElementById("su-email").value.trim();
+    const password = document.getElementById("su-pw").value;
 
-  let ok = true;
-  if (!fname)          { showMfErr('su-fname', 'First name is required.'); ok = false; }
-  if (!lname)          { showMfErr('su-lname', 'Last name is required.'); ok = false; }
-  if (!biz)            { showMfErr('su-biz',   'Business name is required.'); ok = false; }
-  if (!isEmail(email)) { showMfErr('su-email', 'Enter a valid email address.'); ok = false; }
-  if (!isPhone(phone)) { showMfErr('su-phone', 'Enter a valid 10-digit phone number.'); ok = false; }
-  if (pw.length < 8)   { showMfErr('su-pw',    'Password must be at least 8 characters.'); ok = false; }
-  if (pw !== cpw)      { showMfErr('su-cpw',   'Passwords do not match.'); ok = false; }
-  if (!terms)          { showMfErr('su-terms',  'You must accept the Terms of Service.'); ok = false; }
-  if (!ok) return;
-
-  // Block using admin email during signup
-  if (email.toLowerCase() === ADMIN_EMAIL) {
-    showMfErr('su-email', 'This email is reserved. Please use a different email.');
-    return;
-  }
-
-  setBtnLoading('btn-signup', true, '');
-
-  try {
-    await openDB();
-    const existing = await dbGetUser(email);
-    if (existing) {
-      setBtnLoading('btn-signup', false, '<i class="bi bi-person-plus"></i> Create Free Account');
-      showMfErr('su-email', 'This email is already registered. Please sign in instead.');
-      return;
+    // Basic validation
+    if (!firstName || !lastName || !email || !password) {
+      showToast("Please fill all fields.", "error");
+return;
+        return;
     }
-    const user = {
-      email, fname, lname, biz, phone,
-      pw      : btoa(unescape(encodeURIComponent(pw))),
-      plan    : 'Free',
-      role    : 'user',
-      created : new Date().toISOString(),
-      id      : Date.now()
-    };
-    await dbPutUser(user);
-    setSession(user, false);
-    closeAllOverlays();
-    showToast(`🎉 Welcome, ${fname}! Your account is ready.`, 'success');
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
-  } catch (err) {
-    console.error(err);
-    showToast('Something went wrong. Please try again.', 'error');
-  } finally {
-    setBtnLoading('btn-signup', false, '<i class="bi bi-person-plus"></i> Create Free Account');
-  }
+
+    try {
+
+        const response = await fetch("http://127.0.0.1:8000/api/register/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+           body: JSON.stringify({
+    username: username,
+    email: email,
+    password: password,
+    first_name: firstName,
+    last_name: lastName
+})
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+showToast("Account Created Successfully 🎉", "success");
+
+            // Clear form
+            document.getElementById("su-fname").value = "";
+            document.getElementById("su-lname").value = "";
+            document.getElementById("su-email").value = "";
+            document.getElementById("su-pw").value = "";
+
+            // Switch to Sign In page
+            switchAuthTab("signin");
+
+        } else {
+
+            alert(JSON.stringify(data));
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+        alert("Unable to connect to the Django server.");
+
+    }
 }
+
 
 /* ============================================================
    GOOGLE AUTH  ← always role:'user', goes to dashboard.html
    ============================================================ */
-async function doGoogleAuth() {
-  const googleAccounts = [
-    { email:'demo.user@gmail.com',    fname:'Demo',   lname:'User',    biz:'Demo Business Pvt. Ltd.' },
-    { email:'test.account@gmail.com', fname:'Test',   lname:'Account', biz:'Test Corp India' },
-    { email:'sample@gmail.com',       fname:'Sample', lname:'User',    biz:'Sample Enterprises' },
-  ];
-  showToast('Connecting to Google…', 'info', 1600);
-  await new Promise(r => setTimeout(r, 1800));
-  const g = googleAccounts[Math.floor(Math.random() * googleAccounts.length)];
-  try {
-    await openDB();
-    let user = await dbGetUser(g.email);
-    if (!user) {
-      user = { ...g, pw:'__google_oauth__', phone:'', plan:'Free', role:'user', created:new Date().toISOString(), id:Date.now() };
-      await dbPutUser(user);
-    }
-    setSession(user, true);
-    closeAllOverlays();
-    showToast(`✅ Signed in with Google as ${user.fname}!`, 'success');
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
-  } catch (err) {
-    console.error(err);
-    showToast('Google sign-in failed. Please try again.', 'error');
-  }
-}
-
 /* ============================================================
    FORGOT PASSWORD
    ============================================================ */
+
 let _fpEmail = '';
-let _fpOtp   = '';
 
 function fpGoTo(step) {
-  document.querySelectorAll('.fp-step').forEach(s => s.classList.remove('active'));
-  document.getElementById('fp' + step).classList.add('active');
+    document.querySelectorAll('.fp-step').forEach(stepEl => {
+        stepEl.classList.remove('active');
+    });
+
+    document.getElementById('fp' + step).classList.add('active');
 }
-function fpStep1() {
-  const email = document.getElementById('fp-email').value.trim();
-  clearMfErr('fp-email');
-  if (!isEmail(email)) { showMfErr('fp-email','Enter a valid email address.'); return; }
-  const btn = document.querySelector('#fp1 .btn-glow');
-  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Sending OTP…';
-  setTimeout(async () => {
-    btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Send OTP';
-    _fpEmail = email;
-    _fpOtp   = '123456';
-    document.getElementById('fp2-sub').innerHTML = `We sent a code to <strong style="color:var(--blue-neon);">${email}</strong>`;
-    fpGoTo(2);
-    showToast('OTP sent! Use: 1 2 3 4 5 6', 'success');
-  }, 1400);
+
+/* ============================================================
+   STEP 1 - SEND OTP
+   ============================================================ */
+
+async function fpStep1() {
+
+    const email = document.getElementById('fp-email').value.trim();
+
+    clearMfErr('fp-email');
+
+    if (!isEmail(email)) {
+        showMfErr('fp-email', 'Enter a valid email address.');
+        return;
+    }
+
+    const btn = document.querySelector('#fp1 .btn-glow');
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spin"></div> Sending OTP...';
+
+    try {
+
+        const response = await fetch("http://127.0.0.1:8000/api/forgot-password/", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                email: email
+            })
+
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            showToast(data.error || "Failed to send OTP", "error");
+
+            return;
+
+        }
+
+        _fpEmail = email;
+
+        document.getElementById("fp2-sub").innerHTML =
+            `We sent a code to <strong style="color:var(--blue-neon);">${email}</strong>`;
+
+        fpGoTo(2);
+
+        showToast("OTP sent successfully.", "success");
+
+    }
+    catch (err) {
+
+        console.error(err);
+
+        showToast("Server Error", "error");
+
+    }
+    finally {
+
+        btn.disabled = false;
+
+        btn.innerHTML = '<i class="bi bi-send"></i> Send OTP';
+
+    }
+
 }
+
+/* ============================================================
+   OTP INPUT
+   ============================================================ */
+
 function otpNext(inp, idx) {
-  inp.classList.toggle('filled', inp.value.length > 0);
-  const inputs = document.querySelectorAll('#otp-inputs input');
-  if (inp.value && idx < 5) inputs[idx + 1].focus();
+
+    inp.classList.toggle("filled", inp.value.length > 0);
+
+    const inputs = document.querySelectorAll("#otp-inputs input");
+
+    if (inp.value && idx < 5) {
+        inputs[idx + 1].focus();
+    }
+
 }
+
 function otpBack(inp, e, idx) {
-  if (e.key === 'Backspace' && !inp.value && idx > 0)
-    document.querySelectorAll('#otp-inputs input')[idx - 1].focus();
+
+    if (e.key === "Backspace" && !inp.value && idx > 0) {
+        document.querySelectorAll("#otp-inputs input")[idx - 1].focus();
+    }
+
 }
-function fpStep2() {
-  const inputs = document.querySelectorAll('#otp-inputs input');
-  const otp = Array.from(inputs).map(i => i.value).join('');
-  clearMfErr('fp-otp');
-  if (otp !== _fpOtp) { showMfErr('fp-otp', 'Invalid OTP. Use: 1 2 3 4 5 6'); return; }
-  fpGoTo(3);
-  showToast('OTP verified ✅', 'success');
+
+/* ============================================================
+   STEP 2 - VERIFY OTP
+   ============================================================ */
+
+async function fpStep2() {
+
+    const inputs = document.querySelectorAll("#otp-inputs input");
+
+    const otp = Array.from(inputs).map(i => i.value).join("");
+
+    clearMfErr("fp-otp");
+
+    if (otp.length !== 6) {
+
+        showMfErr("fp-otp", "Enter the 6-digit OTP.");
+
+        return;
+
+    }
+
+    const btn = document.querySelector("#fp2 .btn-glow");
+
+    btn.disabled = true;
+
+    btn.innerHTML = '<div class="spin"></div> Verifying...';
+
+    try {
+
+        const response = await fetch("http://127.0.0.1:8000/api/verify-otp/", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                email: _fpEmail,
+
+                otp: otp
+
+            })
+
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            showToast(data.error || "Invalid OTP", "error");
+
+            return;
+
+        }
+
+        showToast("OTP Verified Successfully", "success");
+
+        fpGoTo(3);
+
+    }
+    catch (err) {
+
+        console.error(err);
+
+        showToast("Server Error", "error");
+
+    }
+    finally {
+
+        btn.disabled = false;
+
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Verify OTP';
+
+    }
+
 }
+
+/* ============================================================
+   STEP 3 - RESET PASSWORD
+   ============================================================ */
+
 async function fpStep3() {
-  const np = document.getElementById('fp-np').value;
-  const cp = document.getElementById('fp-cp').value;
-  clearAllErrs('fp-np','fp-cp');
-  let ok = true;
-  if (np.length < 8) { showMfErr('fp-np','Min 8 characters required.'); ok=false; }
-  if (np !== cp)     { showMfErr('fp-cp','Passwords do not match.'); ok=false; }
-  if (!ok) return;
-  const btn = document.querySelector('#fp3 .btn-glow');
-  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Resetting…';
-  try {
-    await openDB();
-    const user = await dbGetUser(_fpEmail);
-    if (user) { user.pw = btoa(unescape(encodeURIComponent(np))); await dbPutUser(user); }
-    await new Promise(r => setTimeout(r, 1200));
-    closeAllOverlays();
-    showToast('Password reset successfully! Please sign in.', 'success');
-    setTimeout(() => { openAuthOverlay('signin'); document.getElementById('si-email').value = _fpEmail; }, 400);
-  } catch (err) {
-    console.error(err);
-    showToast('Reset failed. Please try again.', 'error');
-  } finally {
-    btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Reset Password';
-  }
+
+    const np = document.getElementById("fp-np").value;
+
+    const cp = document.getElementById("fp-cp").value;
+
+    clearAllErrs("fp-np", "fp-cp");
+
+    let ok = true;
+
+    if (np.length < 8) {
+
+        showMfErr("fp-np", "Minimum 8 characters required.");
+
+        ok = false;
+
+    }
+
+    if (np !== cp) {
+
+        showMfErr("fp-cp", "Passwords do not match.");
+
+        ok = false;
+
+    }
+
+    if (!ok) return;
+
+    const btn = document.querySelector("#fp3 .btn-glow");
+
+    btn.disabled = true;
+
+    btn.innerHTML = '<div class="spin"></div> Resetting...';
+
+    try {
+
+        const response = await fetch("http://127.0.0.1:8000/api/reset-password/", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                email: _fpEmail,
+
+                new_password: np
+
+            })
+
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            showToast(data.error || "Password reset failed.", "error");
+
+            return;
+
+        }
+
+        showToast("Password reset successfully!", "success");
+
+        closeAllOverlays();
+
+        setTimeout(() => {
+
+            openAuthOverlay("signin");
+
+            document.getElementById("si-email").value = _fpEmail;
+
+        }, 500);
+
+    }
+    catch (err) {
+
+        console.error(err);
+
+        showToast("Server Error", "error");
+
+    }
+    finally {
+
+        btn.disabled = false;
+
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Reset Password';
+
+    }
+
 }
 
 /* ============================================================
@@ -1371,21 +1506,48 @@ const currencies = ['₹','$','€','£','¥','GST','UPI','TAX','₿','HSN'];
 const iconNames  = ['bi-receipt','bi-file-earmark-text','bi-qr-code','bi-graph-up','bi-wallet2','bi-bar-chart','bi-pie-chart','bi-cash-coin','bi-currency-rupee','bi-file-pdf'];
 const floatCards = ['Revenue +₹1.2L','Tax Filed ✓','Invoice #1042','GSTR-1 Due','+₹24,500','GST 18%','UPI ✓'];
 function makeFloat(){
-    const container = document.getElementById('float-world');
 
-    if(!container) {
-        console.error('float-world element not found');
-        return;
-    }
+    const container = document.getElementById("float-world");
 
-    const el = document.createElement('div');
-    el.className = 'float-icon';
+    if(!container) return;
+
+    const el = document.createElement("i");
+
+    const icons = [
+        "bi-receipt",
+        "bi-file-earmark-text",
+        "bi-wallet2",
+        "bi-credit-card",
+        "bi-bar-chart-line",
+        "bi-box-seam",
+        "bi-currency-rupee",
+        "bi-graph-up-arrow",
+        "bi-calculator",
+        "bi-cart"
+    ];
+
+    el.className =
+        "bi " +
+        icons[Math.floor(Math.random()*icons.length)] +
+        " float-el float-icon";
+
+    el.style.left = Math.random()*100 + "%";
+
+    el.style.top = "110%";
+
+    el.style.setProperty("--fs",
+        (24 + Math.random()*30) + "px");
+
+    el.style.animationDuration =
+        (12 + Math.random()*10) + "s";
 
     container.appendChild(el);
+
+    setTimeout(()=>{
+        el.remove();
+    },22000);
+
 }
-function spawnFloats(){makeFloat(['currency','currency','icon','doc','qr','card'][Math.floor(Math.random()*6)]);setTimeout(spawnFloats,400+Math.random()*600);}
-for(let i=0;i<30;i++) setTimeout(()=>makeFloat(['currency','icon','doc','qr','card'][Math.floor(Math.random()*5)]),i*200);
-spawnFloats();
 
 /* ============================================================
    INVOICE ANIMATION
@@ -1504,12 +1666,11 @@ document.head.appendChild(dynStyle);
    DOMContentLoaded
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  const sess = getSession();
-  if (sess) {
-    const emailInp = document.getElementById('si-email');
-    if (emailInp) emailInp.value = sess.email;
-  }
-  openDB().catch(() => {});   // warm up DB + seed admin
+    const sess = getSession?.();
+    if (sess) {
+        const emailInp = document.getElementById('si-email');
+        if (emailInp) emailInp.value = sess.email || "";
+    }
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1549,5 +1710,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 </script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </body>
 </html>

@@ -272,7 +272,7 @@
                     </div>
                     <div class="info-group">
                         <label>Contact Number</label>
-                        <input type="text" id="editPhone" placeholder="+1 (555) 000-0000">
+                        <input type="text" id="editPhone" placeholder="+91">
                     </div>
                     <div class="info-group">
                         <label>Organization</label>
@@ -308,52 +308,45 @@
     
     <script>
         // 1. Data Initialization & Storage Key
-        const USER_STORAGE_KEY = "currentUser";
+      const USER_STORAGE_KEY = "loggedUser";
 
         // 2. Load and Render Data
-        function loadProfile() {
-            const userData = localStorage.getItem(USER_STORAGE_KEY);
-            
-            // Redirect if no user found (optional, but recommended)
-            if (!userData) {
-                // If this is a demo, let's create a dummy user
-                const defaultUser = {
-                    name: "Ghost User",
-                    email: "ghost@invoicehub.hud",
-                    phone: "+1 234 567 890",
-                    biz: "Neural Net Corp",
-                    role: "Lead Architect",
-                    profilePic: "",
-                    created: "Oct 2023"
-                };
-                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(defaultUser));
-                location.reload();
-                return;
-            }
+     function loadProfile() {
 
-            const user = JSON.parse(userData);
-            const nameParts = user.name.split(" ");
+    const user = JSON.parse(localStorage.getItem("loggedUser"));
 
-            // Populate UI Elements
-            document.getElementById("displayNameHeader").textContent = user.name;
-            document.getElementById("displayRole").textContent = `Access: ${user.role || 'User'}`;
-            document.getElementById("displayCreated").value = user.created || "System Genesis";
-            
-            // Populate Form Fields
-            document.getElementById("editFname").value = nameParts[0] || "";
-            document.getElementById("editLname").value = nameParts.slice(1).join(" ") || "";
-            document.getElementById("editEmail").value = user.email || "";
-            document.getElementById("editPhone").value = user.phone || "";
-            document.getElementById("editBiz").value = user.biz || "";
+    if (!user) {
 
-            // Handle Avatar
-            const avatarImg = document.getElementById("displayAvatar");
-            if (user.profilePic) {
-                avatarImg.src = user.profilePic;
-            } else {
-                avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00D4FF&color=000&bold=true`;
-            }
-        }
+        window.location.href = "login.html";
+        return;
+
+    }
+
+    const firstName = user.first_name || "";
+    const lastName = user.last_name || "";
+    const fullName = (firstName + " " + lastName).trim() || user.username;
+
+    document.getElementById("displayNameHeader").textContent = fullName;
+
+    document.getElementById("displayRole").textContent = "Access: Customer";
+
+    document.getElementById("displayCreated").value = "Active";
+
+    document.getElementById("editFname").value = firstName;
+
+    document.getElementById("editLname").value = lastName;
+
+    document.getElementById("editEmail").value = user.email;
+
+    document.getElementById("editPhone").value = user.phone || "";
+
+    document.getElementById("editBiz").value = user.biz || "";
+
+    document.getElementById("displayAvatar").src =
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=00D4FF&color=000&bold=true`;
+
+}
+    
 
         // 3. Handle Profile Picture Upload
         document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -374,7 +367,7 @@
                 document.getElementById("displayAvatar").src = base64Image;
 
                 // Save to LocalStorage
-                const user = JSON.parse(localStorage.getItem(USER_STORAGE_KEY));
+             const user = JSON.parse(localStorage.getItem("loggedUser"));
                 user.profilePic = base64Image;
                 localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
             };
@@ -392,12 +385,13 @@
             const lname = document.getElementById("editLname").value.trim();
             
             // Update Object
-            user.name = `${fname} ${lname}`;
+            user.first_name = fname;
+user.last_name = lname;
             user.phone = document.getElementById("editPhone").value.trim();
             user.biz = document.getElementById("editBiz").value.trim();
 
             // Save to LocalStorage
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+            localStorage.setItem("loggedUser", JSON.stringify(user));
 
             // Update UI Header
             document.getElementById("displayNameHeader").textContent = user.name;

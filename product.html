@@ -454,26 +454,46 @@ h2 {
     background: #0F1B2D;
     border: 1px solid var(--border-glass);
     border-radius: 20px;
-    width: 480px;
+   width:900px;
+max-width:95%;
     max-height: 90vh;
     overflow-y: auto;
     padding: 26px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(10, 132, 255, 0.1);
 }
 
-.form-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+.form-grid-2{
+
+display:grid;
+
+grid-template-columns:repeat(2,minmax(0,1fr));
+
+gap:20px;
+
+width:100%;
+
+align-items:start;
+
 }
 
-.form-group {
-    margin-bottom: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
+.form-group{
 
+display:flex;
+
+flex-direction:column;
+
+gap:8px;
+
+margin:0;
+
+width:100%;
+
+}
+.full-width{
+
+grid-column:1/-1;
+
+}
 .form-group label {
     font-size: 11px;
     color: var(--text-muted);
@@ -481,14 +501,22 @@ h2 {
     text-transform: uppercase;
 }
 
-.form-control {
-    padding: 10px 14px;
-    background: rgba(7, 17, 31, 0.7);
-    border: 1px solid var(--border-glass);
-    border-radius: 8px;
-    color: #FFF;
-    outline: none;
-    font-size: 14px;
+.form-control{
+
+width:100%;
+
+padding:12px 14px;
+
+background:rgba(7,17,31,.7);
+
+border:1px solid var(--border-glass);
+
+border-radius:10px;
+
+color:#fff;
+
+font-size:15px;
+
 }
 .form-control:focus { border-color: var(--primary); }
 
@@ -519,11 +547,18 @@ h2 {
     width: 50px; height: 35px; object-fit: cover; border-radius: 4px; display: none; margin-left: auto;
 }
 
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+.modal-actions{
+
+display:flex;
+
+justify-content:flex-end;
+
+gap:15px;
+
+margin-top:25px;
+
+grid-column:1/-1;
+
 }
 .top-actions{
     display:flex;
@@ -584,6 +619,67 @@ h2 {
 
 .back-btn i{
     font-size:18px;
+}
+/* Toast */
+
+.toast{
+
+    position:fixed;
+
+    top:25px;
+
+    right:25px;
+
+    background:#101d31;
+
+    color:#fff;
+
+    padding:15px 22px;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    border-left:5px solid #00D4FF;
+
+    box-shadow:0 15px 40px rgba(0,212,255,.35);
+
+    z-index:99999;
+
+    transform:translateX(420px);
+
+    opacity:0;
+
+    transition:.4s;
+
+}
+
+.toast.show{
+
+    transform:translateX(0);
+
+    opacity:1;
+
+}
+
+.toast i{
+
+    color:#00E676;
+
+    font-size:22px;
+
+}
+
+#toastText{
+
+    font-size:15px;
+
+    font-weight:600;
+
 }
 </style>
 </head>
@@ -647,11 +743,38 @@ h2 {
                     <option value="Services">Services</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Stock Quantity</label>
-                <input type="number" id="pStock" class="form-control" placeholder="10">
-            </div>
-        </div>
+             <div class="form-group">
+        <label>HSN Code</label>
+        <input
+            type="text"
+            id="pHsn"
+            class="form-control"
+            placeholder="Enter HSN Code">
+    </div>
+
+</div>
+            <div class="form-grid-2">
+
+    <div class="form-group">
+        <label>Stock Quantity</label>
+        <input
+            type="number"
+            id="pStock"
+            class="form-control"
+            placeholder="10">
+    </div>
+
+    <div class="form-group">
+        <label>Minimum Stock</label>
+        <input
+            type="number"
+            id="pMinStock"
+            class="form-control"
+            value="5">
+    </div>
+
+</div>
+        
 
         <div class="form-grid-2">
             <div class="form-group">
@@ -664,7 +787,7 @@ h2 {
             </div>
         </div>
 
-        <div class="form-group">
+       <div class="form-group full-width">
             <label>Product Graphic Attachment</label>
             <div class="file-upload-wrapper">
                 <span id="uploadLabel" style="font-size:12px; color:var(--text-muted);">📷 Upload local image asset (or fallback auto-searched generation)</span>
@@ -681,16 +804,24 @@ h2 {
 </div>
 
 <script>
-/* ===== DATA STATE ENGINE WITH IMAGE INTEGRATION ===== */
-let inventory = [
-    { name: 'MacBook Pro 14"', sku: "EL-MBP-14", cat: "Electronics", price: "1,99,900", gst: "18%", stock: 12, img: "" },
-    { name: "iPad Air M3", sku: "EL-IPD-AIR", cat: "Electronics", price: "64,900", gst: "18%", stock: 4, img: "" },
-    { name: "Figma Pro Seat", sku: "SW-FIG-PRO", cat: "Software", price: "1,500", gst: "18%", stock: 999, img: "" },
-    { name: "Premium T-Shirt", sku: "AP-TSH-BLK", cat: "Apparel", price: "1,200", gst: "12%", stock: 142, img: "" },
-    { name: "Consulting Service", sku: "SV-CONS-HR", cat: "Services", price: "4,500", gst: "18%", stock: 999, img: "" },
-    { name: "AirPods Pro", sku: "EL-AIR-PRO", cat: "Electronics", price: "24,900", gst: "18%", stock: 0, img: "" }
-];
+    function showToast(message){
 
+    const toast=document.getElementById("toast");
+
+    document.getElementById("toastText").innerText=message;
+
+    toast.classList.add("show");
+
+    setTimeout(()=>{
+
+        toast.classList.remove("show");
+
+    },3000);
+
+}
+/* ===== DATA STATE ENGINE WITH IMAGE INTEGRATION ===== */
+let inventory = [];
+    
 let currentCategory = "All";
 let uploadedImageBase64 = "";
 
@@ -720,24 +851,38 @@ function renderGrid(dataToRender = inventory) {
     }
 
     mainGrid.innerHTML = dataToRender.map((p) => {
-        let absoluteIndex = inventory.findIndex(item => item.sku === p.sku);
-        
-        let status = "in", badge = "In Stock", stockClass = "";
-        if (p.stock == 0) { status = "out"; badge = "Out"; stockClass = "danger"; }
-        else if (p.stock <= 5) { status = "low"; badge = "Low Stock"; stockClass = "warn"; }
+        let productId = p.id;
+      let status = "in";
+let badge = "In Stock";
+let stockClass = "";
 
-        let cardImgSrc = p.img ? p.img : getSmartFallbackUrl(p.name, p.cat);
+if (p.stock <= 0){
+
+    status = "out";
+    badge = "Out Of Stock";
+    stockClass = "danger";
+
+}
+else if (p.stock <= p.minimum_stock){
+
+    status = "low";
+    badge = "Low Stock";
+    stockClass = "warn";
+
+}
+
+        let cardImgSrc = p.img ? p.img : getSmartFallbackUrl(p.product_name, p.category);
 
         return `
-            <div class="product-card" onclick="openModal(${absoluteIndex})">
+            <div class="product-card" onclick="openModal(${productId})">
                 <span class="badge ${status}">${badge}</span>
                 <img src="${cardImgSrc}" class="card-banner-img" alt="node asset image">
                 <div class="card-center">
                     <div class="title-icon-flex">
-                        <div class="box-icon-wrap">${getIcon(p.cat)}</div>
-                        <h4 class="product-title" title="${p.name}">${p.name}</h4>
+                        <div class="box-icon-wrap">${getIcon(p.category)}</div>
+                        <h4 class="product-title" title="${p.product_name}">${p.product_name}</h4>
                     </div>
-                    <span class="sku-text">${p.sku} &bull; ${p.cat}</span>
+                    <span class="sku-text">${p.sku} &bull; ${p.category}</span>
                     <div class="edit-hint">⚡ AMEND CORE IDENTITY PARAMETERS</div>
                 </div>
               <div class="card-footer">
@@ -754,30 +899,28 @@ function renderGrid(dataToRender = inventory) {
 
     <div class="metric right">
         <span class="label">Stock</span>
-        <span class="val ${stockClass}">${p.stock}</span>
+       <span class="val ${stockClass}">
+${p.stock} ${p.unit}
+</span>
     </div>
 
 </div>
 
 <div class="product-actions">
 
-    <button
-        class="edit-btn"
-        onclick="event.stopPropagation(); openModal(${absoluteIndex})">
+   <button
+    class="edit-btn"
+    onclick="event.stopPropagation(); openModal(${productId})">
+    <i class="bi bi-pencil-square"></i>
+    Edit
+</button>
 
-        <i class="bi bi-pencil-square"></i>
-        Edit
-
-    </button>
-
-    <button
-        class="delete-btn"
-        onclick="event.stopPropagation(); deleteProduct(${absoluteIndex})">
-
-        <i class="bi bi-trash-fill"></i>
-        Delete
-
-    </button>
+   <button
+    class="delete-btn"
+    onclick="event.stopPropagation(); deleteProduct(${productId})">
+    <i class="bi bi-trash-fill"></i>
+    Delete
+</button>
 
 </div>
             </div>
@@ -796,8 +939,8 @@ function switchTab(element, category) {
 function filterGrid() {
     let query = document.getElementById('searchBox').value.toLowerCase();
     let filtered = inventory.filter(p => {
-        let matchCat = (currentCategory === "All" || p.cat === currentCategory);
-        let matchQuery = p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query) || p.cat.toLowerCase().includes(query);
+      let matchCat = (currentCategory === "All" || p.category === currentCategory);
+        let matchQuery =p.product_name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
         return matchCat && matchQuery;
     });
     renderGrid(filtered);
@@ -828,15 +971,32 @@ function openModal(index = null) {
     
     let activeSearchText = document.getElementById('searchBox').value;
 
-    if (index !== null) {
-        document.getElementById('modalTitle').innerText = "Modify Core Node Data";
-        document.getElementById('editIndex').value = index;
-        document.getElementById('pName').value = inventory[index].name;
-        document.getElementById('pSku').value = inventory[index].sku;
-        document.getElementById('pCat').value = inventory[index].cat;
-        document.getElementById('pPrice').value = inventory[index].price;
-        document.getElementById('pGst').value = inventory[index].gst;
-        document.getElementById('pStock').value = inventory[index].stock;
+if (index !== null) {
+
+    const product = inventory.find(p => p.id == index);
+
+    if (!product) return;
+
+    document.getElementById('modalTitle').innerText = "Modify Core Node Data";
+
+    document.getElementById("editIndex").value = product.id;
+
+    document.getElementById('pName').value = product.product_name;
+
+    document.getElementById('pSku').value = product.sku || "";
+
+    document.getElementById('pCat').value = product.category;
+
+    document.getElementById("pHsn").value = product.hsn_code || "";
+
+    document.getElementById('pPrice').value = product.price;
+
+    document.getElementById('pGst').value = product.gst + "%";
+
+    document.getElementById("pMinStock").value =
+product.minimum_stock || 5;
+
+
         if(inventory[index].img) {
             document.getElementById('modalImgPreview').src = inventory[index].img;
             document.getElementById('modalImgPreview').style.display = "block";
@@ -851,6 +1011,7 @@ function openModal(index = null) {
         document.getElementById('pPrice').value = "";
         document.getElementById('pGst').value = "18%";
         document.getElementById('pStock').value = "";
+        document.getElementById("pMinStock").value = 5;
     }
 }
 
@@ -858,41 +1019,107 @@ function closeModal() {
     document.getElementById('productModal').style.display = 'none';
 }
 
-function saveProduct() {
-    let index = document.getElementById('editIndex').value;
-    let name = document.getElementById('pName').value;
-    let sku = document.getElementById('pSku').value;
-    let cat = document.getElementById('pCat').value;
-    let price = document.getElementById('pPrice').value;
-    let gst = document.getElementById('pGst').value;
-    let stock = parseInt(document.getElementById('pStock').value) || 0;
+async function saveProduct() {
 
-    if (!name || !sku || !price) {
-        alert("Action Aborted: Structural identities (Name, SKU, Price) cannot be blank.");
-        return;
+    const product = {
+
+        product_name: document.getElementById("pName").value.trim(),
+
+        sku: document.getElementById("pSku").value.trim(),
+
+        category: document.getElementById("pCat").value,
+
+        hsn_code: document.getElementById("pHsn").value.trim(),
+
+        price: document.getElementById("pPrice").value,
+
+        gst: document.getElementById("pGst").value.replace("%",""),
+
+       stock: Number(document.getElementById("pStock").value),
+
+minimum_stock: Number(document.getElementById("pMinStock").value),
+
+        unit: "pcs",
+
+        barcode: "",
+
+        description: ""
+
+    };
+
+    const editId = document.getElementById("editIndex").value;
+
+    let url = "http://127.0.0.1:8000/api/products/";
+
+    let method = "POST";
+
+    if(editId){
+
+        url += editId + "/";
+
+        method = "PUT";
+
     }
 
-    let productData = { name, sku, cat, price, gst, stock, img: uploadedImageBase64 };
+    const token = localStorage.getItem("accessToken");
 
-    if (index !== "") {
-        inventory[index] = productData;
-    } else {
-        inventory.push(productData);
-    }
+const response = await fetch(url,{
+
+    method: method,
+
+    headers:{
+        "Content-Type":"application/json",
+        "Authorization": `Bearer ${token}`
+    },
+
+    body: JSON.stringify(product)
+
+});
+   let data = {};
+
+try{
+    data = await response.json();
+}catch(e){
+    data = {};
+}
+
+   if(response.ok){
+
+    console.log("SUCCESS:", data);
+
+    showToast("Product Saved Successfully");
 
     closeModal();
-    filterGrid();
+
+    loadProducts();
+
 }
-function deleteProduct(index){
+else{
 
-    if(confirm("Delete this product?")){
+    console.log("Status:", response.status);
+    console.log("Response:", data);
 
-        inventory.splice(index,1);
+   showToast("Failed to save product.");
+}
 
-        filterGrid();
+}
+async function deleteProduct(id){
 
+    showToast("Product Deleted Successfully");
+
+   const token = localStorage.getItem("accessToken");
+
+await fetch("http://127.0.0.1:8000/api/products/"+id+"/",{
+
+    method:"DELETE",
+
+    headers:{
+        "Authorization": `Bearer ${token}`
     }
 
+});
+
+loadProducts();
 }
 /* ===== AMBIENT BACKGROUND PARTICLES ACCELERATOR ===== */
 const canvas = document.getElementById('bgCanvas');
@@ -938,9 +1165,32 @@ function animate() {
 }
 
 /* ===== INIT RUN ===== */
-renderGrid();
-animate();
-</script>
+async function loadProducts() {
 
+    const token = localStorage.getItem("accessToken");
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/products/",
+        {
+            headers:{
+                "Authorization": `Bearer ${token}`
+            }
+        }
+    );
+
+    inventory = await response.json();
+
+    renderGrid();
+
+}
+loadProducts();
+
+animate();
+
+</script>
+<div id="toast" class="toast">
+    <i class="bi bi-check-circle-fill"></i>
+    <span id="toastText">Success</span>
+</div>
 </body>
 </html>

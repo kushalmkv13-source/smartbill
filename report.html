@@ -11,13 +11,7 @@
   <link rel="stylesheet" href="report.css">
 </head>
 <body>
- <!-- BACK TO DASHBOARD BUTTON -->
-  <a href="dashboard.html" class="back-link reveal">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m15 18-6-6 6-6"/>
-    </svg>
-    <span>Back to Dashboard</span>
-  </a>
+
   <!-- ANIMATED BACKGROUND -->
   <div class="bg-layer" aria-hidden="true">
     <div class="grid-anim"></div>
@@ -35,7 +29,7 @@
       <div>
         <div class="brand">
           <div class="brand-mark"></div>
-      
+          <div class="brand-name">Invoice<span>Hub</span></div>
         </div>
         <h1 class="h-title">Reports</h1>
         <p class="h-sub">Business Intelligence &amp; Financial Analytics</p>
@@ -60,6 +54,22 @@
           </svg>
           Print
         </button>
+        <button class="ctrl" id="dashboardBtn">
+
+    <svg viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round">
+
+        <path d="M15 18l-6-6 6-6"/>
+
+    </svg>
+
+    Back to Dashboard
+
+</button>
       </div>
     </header>
 
@@ -74,7 +84,7 @@
             </svg>
           </div>
         </div>
-        <div class="kpi-value">₹5,40,000</div>
+       <div class="kpi-value" id="totalRevenue">₹0</div>
         <div class="kpi-foot"><span class="trend">▲ 18.2%</span><span class="kpi-meta">This month</span></div>
       </div>
 
@@ -87,7 +97,7 @@
             </svg>
           </div>
         </div>
-        <div class="kpi-value">₹3,85,000</div>
+        <div class="kpi-value" id="totalProfit">₹0</div>
         <div class="kpi-foot"><span class="trend">▲ 12.4%</span><span class="kpi-meta">vs last month</span></div>
       </div>
 
@@ -100,7 +110,7 @@
             </svg>
           </div>
         </div>
-        <div class="kpi-value">₹97,200</div>
+       <div class="kpi-value" id="totalGST">₹0</div>
         <div class="kpi-foot"><span class="trend">▲ 9.1%</span><span class="kpi-meta">All states</span></div>
       </div>
 
@@ -113,7 +123,7 @@
             </svg>
           </div>
         </div>
-        <div class="kpi-value">18%</div>
+       <div class="kpi-value" id="growthRate">0%</div>
         <div class="kpi-foot"><span class="trend">▲ 3.4%</span><span class="kpi-meta">YoY</span></div>
       </div>
     </section>
@@ -126,11 +136,29 @@
             <div class="panel-title">Revenue Trend</div>
             <div class="panel-sub">Monthly performance · FY 2025–26</div>
           </div>
-          <div class="chip-row">
-            <button class="chip">3M</button>
-            <button class="chip">6M</button>
-            <button class="chip active">12M</button>
-          </div>
+         <div class="report-filter">
+
+    <select id="reportMonth" class="ctrl">
+        <option value="">All Months</option>
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+    </select>
+
+    <button id="searchReport" class="ctrl primary">
+        Search
+    </button>
+
+</div>
         </div>
         <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
       </div>
@@ -145,23 +173,39 @@
         <div class="donut-wrap">
           <canvas id="gstChart"></canvas>
           <div class="donut-center">
-            <div><div class="v">₹97.2K</div><div class="l">Total GST</div></div>
+            <div><div class="v" id="gstTotal">₹0</div><div class="l">Total GST</div></div>
           </div>
         </div>
-        <div class="legend">
-          <div class="legend-item">
-            <div class="legend-left"><span class="dot" style="background:#00D4FF"></span>CGST</div>
-            <span class="legend-val">₹38,880</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-left"><span class="dot" style="background:#0A84FF"></span>SGST</div>
-            <span class="legend-val">₹38,880</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-left"><span class="dot" style="background:#4DA3FF"></span>IGST</div>
-            <span class="legend-val">₹19,440</span>
-          </div>
+      <div class="legend">
+
+    <div class="legend-item">
+        <div class="legend-left">
+            <span class="dot" style="background:#00D4FF"></span>
+            CGST
         </div>
+
+        <span class="legend-val" id="cgstValue">₹0</span>
+    </div>
+
+    <div class="legend-item">
+        <div class="legend-left">
+            <span class="dot" style="background:#0A84FF"></span>
+            SGST
+        </div>
+
+        <span class="legend-val" id="sgstValue">₹0</span>
+    </div>
+
+    <div class="legend-item">
+        <div class="legend-left">
+            <span class="dot" style="background:#4DA3FF"></span>
+            IGST
+        </div>
+
+        <span class="legend-val" id="igstValue">₹0</span>
+    </div>
+
+</div>
       </div>
     </section>
 
@@ -175,7 +219,7 @@
         </div>
         <div>
           <h4>Best Sales Month</h4>
-          <div class="v">December · ₹72,400</div>
+          <div class="v" id="bestMonth">-</div>
           <div class="m"><strong>+24.6%</strong> vs prior peak</div>
         </div>
       </div>
@@ -190,7 +234,7 @@
         </div>
         <div>
           <h4>Highest Revenue Product</h4>
-          <div class="v">Cloud Pro Plan</div>
+          <div class="v" id="topProduct">-</div>
           <div class="m"><strong>₹1,42,300</strong> generated · 412 invoices</div>
         </div>
       </div>
@@ -203,7 +247,7 @@
         </div>
         <div>
           <h4>Fastest Growing Category</h4>
-          <div class="v">Consulting Services</div>
+          <div class="v" id="topCategory">-</div>
           <div class="m"><strong>+38.7%</strong> quarter-over-quarter</div>
         </div>
       </div>
@@ -241,7 +285,13 @@
     </section>
 
   </main>
+<!-- Toast Notification -->
+<div id="toast" class="toast">
+    <span id="toastMessage"></span>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <script src="report.js"></script>
+<script src="report.js"></script>
+
 </body>
 </html>

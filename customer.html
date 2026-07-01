@@ -70,17 +70,22 @@
         }
 
         /* LEFT SIDE */
-        .control-deck {
-            background: linear-gradient(180deg, rgba(10, 22, 37, 0.9) 0%, rgba(5, 11, 20, 0.98) 100%);
-            border-right: 1px solid var(--border-glass);
-            backdrop-filter: blur(20px);
-            padding: 5rem 2rem 1.5rem 2rem; /* Added top padding to clear the back button */
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            z-index: 2;
-        }
-
+     .control-deck {
+    background: linear-gradient(180deg, rgba(10,22,37,.9) 0%, rgba(5,11,20,.98) 100%);
+    border-right:1px solid var(--border-glass);
+    backdrop-filter:blur(20px);
+    padding:5rem 2rem 1.5rem;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    overflow:hidden;
+}
+.control-deck > div:first-child{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+}
         /* RIGHT SIDE */
         .ledger-view {
             background: rgba(7, 17, 31, 0.3);
@@ -105,9 +110,15 @@
             display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.5rem;
         }
 
-        .form-container {
-            margin-top: 1rem; display: flex; flex-direction: column; gap: 1.1rem; flex-grow: 1; overflow-y: auto; padding-right: 8px;
-        }
+       .form-container{
+    margin-top:1rem;
+    display:flex;
+    flex-direction:column;
+    gap:1rem;
+    flex:1;
+    overflow-y:auto;
+    padding-right:8px;
+}
 
         .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
         label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
@@ -117,8 +128,13 @@
         }
         input:focus { outline: none; border-color: var(--accent-glow); box-shadow: 0 0 15px rgba(0, 212, 255, 0.3); }
 
-        .deck-footer { border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
-        .action-button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+       .deck-footer{
+    flex-shrink:0;
+    border-top:1px solid rgba(255,255,255,.08);
+    padding-top:15px;
+    margin-top:15px;
+    background:#07111f;
+}
 
         .action-btn {
             background: linear-gradient(135deg, var(--primary) 0%, #0052D4) 100%;
@@ -167,30 +183,62 @@
         <h2 class="section-title"><i class="bx bx-id-card"></i> Profile Entry</h2>
         <form id="billingForm" class="form-container">
             <input type="hidden" id="edit-index" value="-1">
-            <div class="input-group">
-                <label>Invoice ID</label>
-                <input type="text" id="cust-invoice-id" placeholder="INV-1001" required>
-            </div>
+           
             <div class="input-group">
                 <label>Customer Name</label>
                 <input type="text" id="cust-name" placeholder="Alex Rivera" required>
             </div>
             <div class="input-group">
                 <label>Contact Number</label>
-                <input type="tel" id="cust-phone" placeholder="(555) 000-0000" maxlength="14" required>
+               <input
+    type="tel"
+    id="cust-phone"
+    placeholder="Enter 10-digit Mobile Number"
+    maxlength="10"
+    pattern="[0-9]{10}"
+    inputmode="numeric"
+    required
+>
             </div>
             <div class="input-group">
                 <label>Email Address</label>
                 <input type="email" id="cust-email" placeholder="alex@example.com" required>
             </div>
-            <div class="input-group">
-                <label>System Entry Date</label>
-                <input type="date" id="entry-date" required>
-            </div>
-            <div class="input-group">
-                <label>Customer Address</label>
-                <input type="text" id="cust-address" placeholder="123 Innovation Way" required>
-            </div>
+        
+           <div class="input-group">
+    <label>GST Number</label>
+    <input type="text"
+           id="cust-gst"
+           placeholder="Enter GST Number">
+</div>
+
+<div class="input-group">
+    <label>Street Address</label>
+    <input type="text"
+           id="cust-address"
+           placeholder="Enter Street Address">
+</div>
+
+<div class="input-group">
+    <label>City</label>
+    <input type="text"
+           id="cust-city"
+           placeholder="Enter City">
+</div>
+
+<div class="input-group">
+    <label>State</label>
+    <input type="text"
+           id="cust-state"
+           placeholder="Enter State">
+</div>
+
+<div class="input-group">
+    <label>Pincode</label>
+    <input type="text"
+           id="cust-pincode"
+           placeholder="Enter Pincode">
+</div>
         </form>
     </div>
 
@@ -254,115 +302,181 @@
     const tableBody = document.getElementById('tableBody');
     const editIndexField = document.getElementById('edit-index');
 
-    // Phone Masking
-    document.getElementById('cust-phone').addEventListener('input', (e) => {
-        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
-        e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
-    });
+    // Allow only 10 digits
+document.getElementById("cust-phone").addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, "").slice(0, 10);
+});
+    
 
-    // Load Data
-    function getProfiles() {
-        return JSON.parse(localStorage.getItem('billing_data') || '[]');
-    }
+async function renderTable() {
 
-    function renderTable() {
-        const profiles = getProfiles();
-        tableBody.innerHTML = '';
-        profiles.forEach((p, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td style="color:var(--accent-glow); font-family:monospace; cursor:pointer" onclick="viewInvoice(${index})">#${p.invoiceID}</td>
-                <td><strong>${p.name}</strong><br><span class="badge standard-badge">Standard</span></td>
-                <td>${p.phone}<br><small>${p.email}</small></td>
-                <td>${p.address}</td>
-                <td>
-                    <button class="btn-icon" onclick="editProfile(${index})"><i class="bx bx-edit-alt"></i></button>
-                    <button class="btn-icon btn-delete" onclick="deleteProfile(${index})"><i class="bx bx-trash"></i></button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
+   const token = localStorage.getItem("accessToken");
 
-    // Commit Action
-    document.getElementById('submitBtn').addEventListener('click', () => {
-        const profile = {
-            invoiceID: document.getElementById('cust-invoice-id').value,
-            name: document.getElementById('cust-name').value,
-            phone: document.getElementById('cust-phone').value,
-            email: document.getElementById('cust-email').value,
-            entryDate: document.getElementById('entry-date').value,
-            address: document.getElementById('cust-address').value
-        };
-
-        if(!profile.invoiceID || !profile.name) return alert("Please fill required fields");
-
-        let profiles = getProfiles();
-        const index = parseInt(editIndexField.value);
-
-        if (index === -1) {
-            profiles.push(profile); // Create
-        } else {
-            profiles[index] = profile; // Update
-            editIndexField.value = "-1";
-            document.getElementById('submitBtn').innerHTML = '<i class="bx bx-check-shield"></i> Commit';
-        }
-
-        localStorage.setItem('billing_data', JSON.stringify(profiles));
-        clearForm();
-        renderTable();
-    });
-
-    function editProfile(index) {
-        const p = getProfiles()[index];
-        document.getElementById('cust-invoice-id').value = p.invoiceID;
-        document.getElementById('cust-name').value = p.name;
-        document.getElementById('cust-phone').value = p.phone;
-        document.getElementById('cust-email').value = p.email;
-        document.getElementById('entry-date').value = p.entryDate;
-        document.getElementById('cust-address').value = p.address;
-        
-        editIndexField.value = index;
-        document.getElementById('submitBtn').innerHTML = '<i class="bx bx-save"></i> Update Profile';
-        document.getElementById('cust-invoice-id').focus();
-    }
-
-    function deleteProfile(index) {
-        if(confirm("Confirm deletion of this record?")) {
-            let profiles = getProfiles();
-            profiles.splice(index, 1);
-            localStorage.setItem('billing_data', JSON.stringify(profiles));
-            renderTable();
+const response = await fetch(
+    "http://127.0.0.1:8000/api/customers/",
+    {
+        headers: {
+            "Authorization": `Bearer ${token}`
         }
     }
+); 
 
-    function clearForm() {
-        form.reset();
-        editIndexField.value = "-1";
-        document.getElementById('submitBtn').innerHTML = '<i class="bx bx-check-shield"></i> Commit';
-        document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
-    }
+    const customers = await response.json();
 
-    function viewInvoice(index) {
-        const p = getProfiles()[index];
-        const content = `
-            <p><strong>Invoice ID:</strong> ${p.invoiceID}</p>
-            <p><strong>Client:</strong> ${p.name}</p>
-            <p><strong>Contact:</strong> ${p.phone}</p>
-            <p><strong>Email:</strong> ${p.email}</p>
-            <p><strong>Date:</strong> ${p.entryDate}</p>
-            <p><strong>Address:</strong> ${p.address}</p>
+   console.log("Customer API Status:", response.status);
+   console.log("Customer API Response:", customers);
+
+    tableBody.innerHTML = "";
+
+    customers.forEach(customer => {
+
+        tableBody.innerHTML += `
+        <tr>
+
+           <td>INV-${String(customer.id).padStart(6,'0')}</td>
+
+            <td>
+                <strong>${customer.full_name}</strong>
+            </td>
+
+            <td>
+                ${customer.phone}<br>
+                <small>${customer.email ?? ""}</small>
+            </td>
+
+            <td>
+                ${customer.address}
+            </td>
+
+            <td>
+
+                <button class="btn-icon"
+                    onclick="editCustomer(${customer.id})">
+
+                    <i class="bx bx-edit-alt"></i>
+
+                </button>
+
+                <button class="btn-icon btn-delete"
+                    onclick="deleteCustomer(${customer.id})">
+
+                    <i class="bx bx-trash"></i>
+
+                </button>
+
+            </td>
+
+        </tr>
         `;
-        document.getElementById('invoiceContent').innerHTML = content;
-        document.getElementById('invoiceOverlay').classList.add('active');
+
+    });
+
+}
+document.getElementById("submitBtn").addEventListener("click", saveCustomer);
+async function saveCustomer() {
+
+    const customer = {
+
+    full_name: document.getElementById("cust-name").value.trim(),
+
+    phone: document.getElementById("cust-phone").value.trim(),
+
+    email: document.getElementById("cust-email").value.trim(),
+
+    gst_number: document.getElementById("cust-gst").value.trim(),
+
+    address: document.getElementById("cust-address").value.trim(),
+
+    city: document.getElementById("cust-city").value.trim(),
+
+    state: document.getElementById("cust-state").value.trim(),
+
+    pincode: document.getElementById("cust-pincode").value.trim()
+
+};
+   const token = localStorage.getItem("accessToken");
+
+const response = await fetch(
+    "http://127.0.0.1:8000/api/customers/",
+    {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(customer)
     }
+);
+
+if (response.ok) {
+
+    alert("Customer Added Successfully");
+
+clearForm();
+
+renderTable();
+
+} else {
+
+    const error = await response.json();
+
+    console.log(error);
+
+    alert(JSON.stringify(error));
+
+}
+}
+function clearForm() {
+
+    form.reset();
+
+    editIndexField.value = "-1";
+
+    document.getElementById("submitBtn").innerHTML =
+        '<i class="bx bx-check-shield"></i> Commit';
+
+}
+async function deleteCustomer(id) {
+
+    if (!confirm("Delete this customer?")) return;
+const token = localStorage.getItem("accessToken");
+
+const response = await fetch(
+    `http://127.0.0.1:8000/api/customers/${id}/`,
+    {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    }
+);
+    if (response.ok) {
+
+        alert("Customer Deleted");
+
+        renderTable();
+
+    } else {
+
+        alert("Delete Failed");
+
+    }
+
+}
+function editCustomer(id) {
+
+    alert("Edit Customer - Next Step");
+
+}
+
+
 
     function closeInvoice() {
         document.getElementById('invoiceOverlay').classList.remove('active');
     }
 
     // Initialize
-    document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
+   
     renderTable();
 </script>
 </body>

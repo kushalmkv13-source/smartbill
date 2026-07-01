@@ -153,13 +153,26 @@ function initCharts() {
     // Revenue Chart
     const revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
-        const revenueChart = new Chart(revenueCtx, {
+      window.revenueChart = new Chart(revenueCtx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+               labels:[
+'Jan',
+'Feb',
+'Mar',
+'Apr',
+'May',
+'Jun',
+'Jul',
+'Aug',
+'Sep',
+'Oct',
+'Nov',
+'Dec'
+],
                 datasets: [{
                     label: 'Revenue',
-                    data: [42000, 51000, 45000, 62000, 58000, 71000, 48950],
+                   data:[0,0,0,0,0,0,0,0,0,0,0,0],
                     borderColor: '#00D4FF',
                     backgroundColor: 'rgba(0, 212, 255, 0.1)',
                     fill: true,
@@ -232,12 +245,12 @@ function initCharts() {
     // Invoice Status Chart
     const invoiceCtx = document.getElementById('invoiceChart');
     if (invoiceCtx) {
-        new Chart(invoiceCtx, {
+        window.invoiceChart = new Chart(invoiceCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Paid', 'Pending', 'Draft', 'Cancelled'],
                 datasets: [{
-                    data: [120, 80, 45, 15],
+                    data:[0,0,0,0],
                     backgroundColor: [
                         '#22C55E',
                         '#FACC15',
@@ -690,12 +703,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initMouseSpotlight();
 
     // Initialize counters
-    animateCounters();
+    
+setTimeout(() => {
 
-    // Initialize charts
-    setTimeout(() => {
-        initCharts();
-    }, 100);
+    initCharts();
+
+    loadDashboardData();
+
+}, 100);
+    
 
     // Initialize sidebar menu
     initSidebarMenu();
@@ -806,11 +822,90 @@ document.head.appendChild(style);
 
 // Log initialization
 console.log('📊 InvoiceHub - Premium Dashboard Ready');
+// ==============================
+// LOAD DASHBOARD DATA FROM DJANGO
+// ==============================
+
+async function loadDashboardData() {
+
+    try {
+
+      const token = localStorage.getItem("accessToken");
+
+const response = await fetch(
+    "http://127.0.0.1:8000/api/reports/dashboard/",
+    {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    }
+);
+
+        const dashboard = await response.json();
+
+        // Revenue Card
+        document.getElementById("totalRevenue").innerHTML =
+            "₹" + Number(dashboard.total_revenue).toLocaleString("en-IN");
+
+        // Invoice Card
+        document.getElementById("totalInvoices").innerHTML =
+            dashboard.total_invoices;
+
+        // Update Charts
+        updateRevenueChart(dashboard.revenue_chart.map(item => item.amount));
+
+        updateInvoiceChart(
+    dashboard.paid_invoices,
+dashboard.pending_invoices
+);
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
+function updateRevenueChart(data){
+
+    if(window.revenueChart){
+
+        window.revenueChart.data.datasets[0].data = data;
+
+        window.revenueChart.update();
+
+    }
+
+}
 function logout(){
 
-    localStorage.removeItem("loggedIn");
-    localStorage.removeItem("currentUser");
+    localStorage.removeItem("loggedUser");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+    localStorage.removeItem("first_name");
+    localStorage.removeItem("last_name");
 
-    window.location.href="login.html";
+    window.location.href = "login.html";
+
+}
+function updateInvoiceChart(paid,pending){
+
+    if(window.invoiceChart){
+window.invoiceChart.data.datasets[0].data = [
+    paid,
+    pending,
+    0,
+    0
+];
+
+        window.invoiceChart.update();
+
+    }
 
 }
